@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DEET — Digital Employment Exchange Token</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<style>
+/* ── Reset & Variables ─────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ink:      #0d0f1a;
+  --paper:    #f4f3ee;
+  --accent:   #3d5afe;
+  --accent2:  #00bfa5;
+  --muted:    #6b7280;
+  --border:   #e2e1dc;
+  --card:     #ffffff;
+  --success:  #00c853;
+  --warn:     #ff6d00;
+  --radius:   14px;
+  --shadow:   0 4px 24px rgba(13,15,26,.08);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Noise texture overlay ─────────────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity: .4;
+}
+
+/* ── Nav ───────────────────────────────────────────────────────────────── */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 3rem;
+  background: rgba(244,243,238,.88);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800; font-size: 1.3rem; letter-spacing: -.02em;
+  display: flex; align-items: center; gap: .5rem;
+}
+.nav-logo span.dot { color: var(--accent); }
+
+.nav-badge {
+  font-size: .72rem; font-weight: 600; letter-spacing: .08em;
+  text-transform: uppercase; padding: .25rem .75rem;
+  background: var(--ink); color: var(--paper); border-radius: 999px;
+}
+
+/* ── Hero ──────────────────────────────────────────────────────────────── */
+.hero {
+  position: relative; z-index: 1;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 3rem; align-items: center;
+  max-width: 1200px; margin: 0 auto;
+  padding: 5rem 3rem 3rem;
+}
+
+.hero-text h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(2.2rem, 4vw, 3.6rem);
+  font-weight: 800; line-height: 1.1; letter-spacing: -.03em;
+}
+
+.hero-text h1 em {
+  font-style: normal; color: var(--accent);
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+.hero-text p {
+  margin-top: 1.2rem; font-size: 1.05rem;
+  color: var(--muted); line-height: 1.7; max-width: 440px;
+}
+
+.hero-stats {
+  display: flex; gap: 2rem; margin-top: 2.5rem;
+}
+.stat { text-align: center; }
+.stat-num {
+  font-family: 'Syne', sans-serif;
+  font-size: 2rem; font-weight: 800;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.stat-label { font-size: .75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-top: .2rem; }
+
+.hero-visual {
+  display: flex; flex-direction: column; gap: 1rem;
+  animation: floatUp .8s ease both;
+}
+
+@keyframes floatUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.flow-step {
+  display: flex; align-items: center; gap: 1rem;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1rem 1.4rem;
+  box-shadow: var(--shadow);
+  animation: floatUp .8s ease both;
+}
+.flow-step:nth-child(1) { animation-delay: .1s; }
+.flow-step:nth-child(2) { animation-delay: .2s; margin-left: 2rem; }
+.flow-step:nth-child(3) { animation-delay: .3s; margin-left: 4rem; }
+.flow-step:nth-child(4) { animation-delay: .4s; margin-left: 2rem; }
+
+.flow-icon {
+  width: 40px; height: 40px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; flex-shrink: 0;
+}
+.flow-icon.blue  { background: #e8eaff; }
+.flow-icon.teal  { background: #e0f7f4; }
+.flow-icon.amber { background: #fff3e0; }
+.flow-icon.green { background: #e8f5e9; }
+
+.flow-info strong { font-size: .9rem; font-weight: 600; display: block; }
+.flow-info span   { font-size: .78rem; color: var(--muted); }
+
+/* ── Alert banner (shown when pre-filled) ──────────────────────────────── */
+#prefill-banner {
+  display: none;
+  position: relative; z-index: 1;
+  max-width: 900px; margin: 0 auto 1rem;
+  padding: 0 3rem;
+}
+#prefill-banner .banner-inner {
+  background: linear-gradient(135deg, #e8f5e9, #e0f7f4);
+  border: 1px solid #a5d6a7;
+  border-radius: var(--radius); padding: 1rem 1.4rem;
+  display: flex; align-items: center; gap: 1rem;
+  font-size: .9rem;
+}
+#prefill-banner .banner-inner strong { color: #2e7d32; }
+#prefill-banner .banner-inner span   { color: #388e3c; }
+
+/* ── Form card ─────────────────────────────────────────────────────────── */
+.form-wrapper {
+  position: relative; z-index: 1;
+  max-width: 900px; margin: 0 auto 6rem;
+  padding: 0 3rem;
+  animation: floatUp .9s .2s ease both;
+}
+
+.form-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* ── Progress bar ──────────────────────────────────────────────────────── */
+.progress-bar {
+  display: flex; border-bottom: 1px solid var(--border);
+}
+.prog-step {
+  flex: 1; padding: 1.1rem 1rem;
+  display: flex; align-items: center; gap: .6rem;
+  cursor: pointer; transition: background .2s;
+  font-size: .82rem; font-weight: 500; color: var(--muted);
+  border-bottom: 3px solid transparent;
+}
+.prog-step:hover { background: #fafaf8; }
+.prog-step.active {
+  color: var(--accent); border-bottom-color: var(--accent);
+  background: #f0f2ff;
+}
+.prog-step.done { color: var(--success); border-bottom-color: var(--success); }
+.prog-dot {
+  width: 24px; height: 24px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .72rem; font-weight: 700;
+  background: #f0f0f0; color: var(--muted); flex-shrink: 0;
+}
+.prog-step.active .prog-dot { background: var(--accent); color: white; }
+.prog-step.done   .prog-dot { background: var(--success); color: white; }
+
+/* ── Sections ──────────────────────────────────────────────────────────── */
+.form-section { display: none; padding: 2.5rem; }
+.form-section.active { display: block; }
+
+.section-header { margin-bottom: 2rem; }
+.section-header h2 {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.4rem; font-weight: 700; letter-spacing: -.02em;
+}
+.section-header p { color: var(--muted); font-size: .9rem; margin-top: .3rem; }
+
+.form-grid { display: grid; gap: 1.4rem; }
+.grid-2 { grid-template-columns: 1fr 1fr; }
+.grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+.span-2 { grid-column: span 2; }
+
+.field-group { display: flex; flex-direction: column; gap: .4rem; }
+
+label {
+  font-size: .78rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .07em;
+  color: var(--muted);
+}
+label .req { color: var(--accent); margin-left: 2px; }
+
+input, select, textarea {
+  font-family: 'DM Sans', sans-serif;
+  font-size: .95rem; color: var(--ink);
+  background: #fafaf8; border: 1.5px solid var(--border);
+  border-radius: 10px; padding: .75rem 1rem;
+  transition: border-color .2s, box-shadow .2s;
+  width: 100%; outline: none;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(61,90,254,.1);
+  background: #fff;
+}
+input.prefilled { background: #f0f7ff; border-color: #90caf9; }
+textarea { resize: vertical; min-height: 100px; }
+select { appearance: none; cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 1rem center;
+  padding-right: 2.5rem;
+}
+
+/* ── Skills tags ───────────────────────────────────────────────────────── */
+.skills-container {
+  background: #fafaf8; border: 1.5px solid var(--border);
+  border-radius: 10px; padding: .6rem;
+  min-height: 56px; display: flex; flex-wrap: wrap; gap: .4rem;
+  cursor: text;
+}
+.skills-container:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(61,90,254,.1);
+}
+.skill-tag {
+  display: inline-flex; align-items: center; gap: .35rem;
+  padding: .25rem .65rem; border-radius: 999px;
+  font-size: .8rem; font-weight: 500;
+  animation: tagPop .15s ease;
+}
+@keyframes tagPop {
+  from { transform: scale(.85); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+.skill-tag.lang   { background: #e8eaff; color: #3d5afe; }
+.skill-tag.fw     { background: #e0f7f4; color: #00796b; }
+.skill-tag.tool   { background: #fce4ec; color: #c62828; }
+.skill-tag.concept{ background: #fff8e1; color: #e65100; }
+.skill-tag.other  { background: #f3e5f5; color: #6a1b9a; }
+.skill-tag button {
+  background: none; border: none; cursor: pointer;
+  padding: 0; display: flex; align-items: center;
+  opacity: .6; transition: opacity .15s; font-size: .9rem; color: inherit;
+}
+.skill-tag button:hover { opacity: 1; }
+.skills-input {
+  border: none; background: none; outline: none;
+  font-family: 'DM Sans', sans-serif; font-size: .9rem;
+  min-width: 140px; padding: .25rem .4rem; flex: 1;
+}
+
+.skill-hint {
+  font-size: .75rem; color: var(--muted);
+  margin-top: .4rem;
+}
+
+/* ── Navigation buttons ────────────────────────────────────────────────── */
+.form-nav {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 1.5rem 2.5rem;
+  border-top: 1px solid var(--border);
+  background: #fafaf8;
+}
+
+.btn {
+  font-family: 'DM Sans', sans-serif;
+  font-size: .9rem; font-weight: 600;
+  padding: .75rem 1.8rem; border-radius: 10px;
+  border: none; cursor: pointer; transition: all .2s;
+  display: flex; align-items: center; gap: .5rem;
+}
+.btn-ghost {
+  background: transparent; color: var(--muted);
+  border: 1.5px solid var(--border);
+}
+.btn-ghost:hover { border-color: var(--ink); color: var(--ink); }
+.btn-primary {
+  background: var(--ink); color: var(--paper);
+  box-shadow: 0 4px 12px rgba(13,15,26,.15);
+}
+.btn-primary:hover { background: var(--accent); transform: translateY(-1px); }
+.btn-submit {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: white; font-size: 1rem; padding: .9rem 2.5rem;
+  box-shadow: 0 4px 20px rgba(61,90,254,.3);
+}
+.btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(61,90,254,.4); }
+
+/* ── Success screen ────────────────────────────────────────────────────── */
+#success-screen {
+  display: none; position: relative; z-index: 1;
+  max-width: 900px; margin: 0 auto 6rem;
+  padding: 0 3rem;
+}
+.success-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 20px; padding: 4rem;
+  text-align: center; box-shadow: var(--shadow);
+}
+.success-icon {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: linear-gradient(135deg, #e8f5e9, #e0f7f4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem; margin: 0 auto 1.5rem;
+}
+.success-card h2 {
+  font-family: 'Syne', sans-serif;
+  font-size: 2rem; font-weight: 800; margin-bottom: .75rem;
+}
+.success-card p { color: var(--muted); max-width: 440px; margin: 0 auto 2rem; line-height: 1.7; }
+
+.profile-summary {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 1rem; margin: 2rem 0; text-align: left;
+}
+.summary-item {
+  background: #fafaf8; border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1rem 1.2rem;
+}
+.summary-item .s-label { font-size: .72rem; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); }
+.summary-item .s-val   { font-weight: 600; margin-top: .3rem; font-size: .9rem; }
+
+.next-steps {
+  display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+  margin-top: 2rem;
+}
+.next-card {
+  background: #fafaf8; border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.2rem 1.5rem;
+  text-align: left; max-width: 220px; flex: 1;
+}
+.next-card .nc-icon { font-size: 1.4rem; margin-bottom: .5rem; }
+.next-card strong { font-size: .85rem; display: block; margin-bottom: .3rem; }
+.next-card span   { font-size: .78rem; color: var(--muted); line-height: 1.5; }
+
+/* ── Data output (for teammate's API) ──────────────────────────────────── */
+#data-output {
+  display: none; margin-top: 2rem;
+  background: #0d0f1a; border-radius: var(--radius);
+  padding: 1.5rem; text-align: left; overflow: auto;
+}
+#data-output pre {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: .8rem; color: #a5d6a7; line-height: 1.6;
+}
+.toggle-json {
+  background: none; border: 1.5px solid var(--border);
+  border-radius: 8px; padding: .5rem 1rem;
+  font-size: .8rem; cursor: pointer; color: var(--muted);
+  font-family: 'DM Sans', sans-serif; transition: all .2s;
+}
+.toggle-json:hover { border-color: var(--ink); color: var(--ink); }
+
+/* ── Jobs Modal ────────────────────────────────────────────────────────── */
+#jobs-modal-overlay {
+  display: none; position: fixed; inset: 0; z-index: 9000;
+  background: rgba(0,0,0,.55); backdrop-filter: blur(4px);
+  align-items: center; justify-content: center;
+}
+#jobs-modal-overlay.open { display: flex; }
+#jobs-modal {
+  background: var(--card); border-radius: 20px;
+  width: min(92vw, 860px); max-height: 85vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 24px 80px rgba(0,0,0,.25);
+  overflow: hidden; position: relative;
+}
+#jobs-modal-header {
+  padding: 1.6rem 2rem 1.2rem;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+}
+#jobs-modal-header h3 {
+  font-family: 'Syne', sans-serif; font-size: 1.25rem; font-weight: 800;
+  margin: 0;
+}
+#jobs-modal-header .jm-subtitle {
+  font-size: .8rem; color: var(--muted); margin-top: .2rem;
+}
+.jm-close {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 1.5px solid var(--border); background: none;
+  cursor: pointer; font-size: 1.1rem; color: var(--muted);
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s;
+}
+.jm-close:hover { background: #f0f0ee; color: var(--ink); }
+
+#jobs-modal-filters {
+  padding: .9rem 2rem; border-bottom: 1px solid var(--border);
+  display: flex; gap: .6rem; flex-wrap: wrap; flex-shrink: 0;
+  background: #fafaf8;
+}
+.jm-filter-pill {
+  padding: .35rem .9rem; border-radius: 999px;
+  border: 1.5px solid var(--border); background: white;
+  font-size: .78rem; cursor: pointer; font-family: 'DM Sans',sans-serif;
+  transition: all .2s; color: var(--ink);
+}
+.jm-filter-pill.active {
+  background: var(--accent); border-color: var(--accent);
+  color: white; font-weight: 600;
+}
+#jobs-modal-body {
+  overflow-y: auto; padding: 1.2rem 2rem 2rem; flex: 1;
+}
+.job-card {
+  border: 1.5px solid var(--border); border-radius: 14px;
+  padding: 1.2rem 1.4rem; margin-bottom: .9rem;
+  background: white; transition: all .2s; cursor: default;
+  position: relative;
+}
+.job-card:hover { border-color: var(--accent); box-shadow: 0 4px 20px rgba(61,90,254,.1); }
+.job-card-top {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem;
+}
+.job-title { font-weight: 700; font-size: .95rem; margin-bottom: .15rem; }
+.job-company { font-size: .82rem; color: var(--muted); }
+.job-match-badge {
+  flex-shrink: 0; padding: .3rem .8rem; border-radius: 999px;
+  font-size: .72rem; font-weight: 700;
+  background: linear-gradient(135deg,#e8f5e9,#e0f7f4);
+  color: #2e7d32; border: 1px solid #c8e6c9;
+}
+.job-match-badge.med { background: linear-gradient(135deg,#fff8e1,#fff3cd); color: #f57f17; border-color: #ffe082; }
+.job-match-badge.low { background: #f5f5f5; color: var(--muted); border-color: #e0e0e0; }
+.job-meta {
+  display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .7rem;
+}
+.job-chip {
+  padding: .2rem .65rem; border-radius: 6px;
+  font-size: .72rem; background: #f0f0ee; color: #555; border: 1px solid #e5e5e3;
+}
+.job-skills-row {
+  display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .7rem;
+}
+.job-skill-tag {
+  padding: .15rem .55rem; border-radius: 5px; font-size: .69rem;
+  background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe;
+}
+.job-skill-tag.matched {
+  background: linear-gradient(135deg,#e8f5e9,#f0fdf4);
+  color: #166534; border-color: #bbf7d0;
+}
+.job-apply-btn {
+  display: inline-flex; align-items: center; gap: .4rem;
+  margin-top: .9rem; padding: .45rem 1.2rem;
+  border-radius: 8px; font-size: .8rem; font-weight: 600;
+  background: var(--accent); color: white;
+  text-decoration: none; border: none; cursor: pointer;
+  font-family: 'DM Sans',sans-serif; transition: all .2s;
+}
+.job-apply-btn:hover { background: #2d4ef5; transform: translateY(-1px); }
+.jm-empty {
+  text-align: center; padding: 3rem 1rem; color: var(--muted);
+}
+.jm-empty .jm-empty-icon { font-size: 2.5rem; margin-bottom: .8rem; }
+#jobs-loading {
+  text-align: center; padding: 3rem; color: var(--muted);
+}
+.jm-count-badge {
+  display: inline-block; background: #eef2ff; color: var(--accent);
+  border-radius: 999px; font-size: .72rem; font-weight: 700;
+  padding: .15rem .65rem; margin-left: .5rem;
+}
+.btn-find-jobs {
+  display: inline-flex; align-items: center; gap: .5rem;
+  padding: .75rem 1.8rem; border-radius: 10px;
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: white; font-weight: 700; font-size: .9rem;
+  border: none; cursor: pointer; font-family: 'DM Sans',sans-serif;
+  transition: all .2s; box-shadow: 0 4px 16px rgba(5,150,105,.3);
+}
+.btn-find-jobs:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(5,150,105,.4); }
+
+/* ── Success screen action buttons ─────────────────────────────── */
+.success-actions {
+  margin-top: 2rem;
+  display: flex;
+  gap: .85rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.success-action-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .9rem 2.2rem;
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  color: white;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 1rem;
+  text-decoration: none;
+  box-shadow: 0 4px 20px rgba(124,58,237,.35);
+  transition: transform .15s, box-shadow .15s;
+}
+.success-action-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(124,58,237,.45); }
+.success-action-jobs {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .9rem 2rem;
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(5,150,105,.3);
+  transition: transform .15s, box-shadow .15s;
+}
+.success-action-jobs:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(5,150,105,.4); }
+.success-action-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .9rem 1.8rem;
+  background: transparent;
+  color: var(--muted);
+  border: 1.5px solid #d1d5db;
+  border-radius: 10px;
+  font-size: .95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color .15s, color .15s;
+}
+.success-action-ghost:hover { border-color: var(--ink); color: var(--ink); }
+
+/* ── Footer ────────────────────────────────────────────────────────────── */
+footer {
+  position: relative; z-index: 1;
+  text-align: center; padding: 2rem;
+  border-top: 1px solid var(--border);
+  font-size: .8rem; color: var(--muted);
+}
+
+/* ── Responsive ────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  nav { padding: 1rem 1.5rem; }
+  .hero { grid-template-columns: 1fr; padding: 2rem 1.5rem; gap: 2rem; }
+  .hero-visual { display: none; }
+  .form-wrapper, #prefill-banner, #success-screen { padding: 0 1rem; }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .span-2 { grid-column: span 1; }
+  .progress-bar { overflow-x: auto; }
+  .prog-step span { display: none; }
+  .form-section { padding: 1.5rem; }
+  .form-nav { padding: 1rem 1.5rem; }
+  .profile-summary { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Nav ─────────────────────────────────────────────────────────────────── -->
+<nav>
+  <div class="nav-logo">DEET<span class="dot">.</span>gov</div>
+  <div class="nav-badge">Employment & JobTech</div>
+</nav>
+
+<!-- ── Hero ────────────────────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-text">
+    <h1>Your resume,<br/>meet your <em>future</em>.</h1>
+    <p>The Digital Employment Exchange Token portal matches citizens with jobs and training programs by building a verified skill profile from your resume — in seconds.</p>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-num">3s</div><div class="stat-label">Avg. Fill Time</div></div>
+      <div class="stat"><div class="stat-num">94%</div><div class="stat-label">Extraction Accuracy</div></div>
+      <div class="stat"><div class="stat-num">12K+</div><div class="stat-label">Jobs Matched</div></div>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="flow-step"><div class="flow-icon blue">📄</div><div class="flow-info"><strong>Upload Resume</strong><span>PDF or image</span></div></div>
+    <div class="flow-step"><div class="flow-icon teal">🧠</div><div class="flow-info"><strong>AI Extraction</strong><span>NLP parses your profile</span></div></div>
+    <div class="flow-step"><div class="flow-icon amber">✏️</div><div class="flow-info"><strong>Review & Edit</strong><span>Confirm your details</span></div></div>
+    <div class="flow-step"><div class="flow-icon green">🎯</div><div class="flow-info"><strong>Get Matched</strong><span>Jobs + training programs</span></div></div>
+  </div>
+</section>
+
+<!-- ── Pre-fill banner ──────────────────────────────────────────────────────── -->
+<div id="prefill-banner">
+  <div class="banner-inner">
+    <span style="font-size:1.3rem">✅</span>
+    <div><strong id="prefill-banner-title">✅ Fields pre-filled!</strong> <span id="prefill-banner-subtitle">Review each step and fill in any missing fields before submitting.</span></div>
+  </div>
+</div>
+
+<!-- ── Form ─────────────────────────────────────────────────────────────────── -->
+<div class="form-wrapper" id="form-wrapper">
+  <div class="form-card">
+
+    <!-- Progress -->
+    <div class="progress-bar">
+      <div class="prog-step active" data-step="1" onclick="goToStep(1)">
+        <div class="prog-dot">1</div><span>Personal</span>
+      </div>
+      <div class="prog-step" data-step="2" onclick="goToStep(2)">
+        <div class="prog-dot">2</div><span>Skills</span>
+      </div>
+      <div class="prog-step" data-step="3" onclick="goToStep(3)">
+        <div class="prog-dot">3</div><span>Education</span>
+      </div>
+      <div class="prog-step" data-step="4" onclick="goToStep(4)">
+        <div class="prog-dot">4</div><span>Preferences</span>
+      </div>
+    </div>
+
+    <!-- ── Section 1: Personal ─────────────────────────────────────────────── -->
+    <div class="form-section active" id="section-1">
+      <div class="section-header">
+        <h2>Personal Information</h2>
+        <p>Your basic contact and identity details</p>
+      </div>
+      <div class="form-grid grid-2">
+        <div class="field-group">
+          <label>Full Name <span class="req">*</span></label>
+          <input type="text" id="full_name" placeholder="e.g. Aisha Sharma" required/>
+        </div>
+        <div class="field-group">
+          <label>Email Address <span class="req">*</span></label>
+          <input type="email" id="email" placeholder="you@example.com" required/>
+        </div>
+        <div class="field-group">
+          <label>Phone Number <span class="req">*</span></label>
+          <input type="tel" id="phone" placeholder="+91 98765 43210" required/>
+        </div>
+        <div class="field-group">
+          <label>Location</label>
+          <input type="text" id="location" placeholder="City, State"/>
+        </div>
+        <div class="field-group">
+          <label>LinkedIn Profile</label>
+          <input type="url" id="linkedin" placeholder="https://linkedin.com/in/..."/>
+        </div>
+        <div class="field-group">
+          <label>GitHub Profile</label>
+          <input type="url" id="github" placeholder="https://github.com/..."/>
+        </div>
+        <div class="field-group span-2">
+          <label>Professional Summary</label>
+          <textarea id="summary" placeholder="Brief description of your background and career goals..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Section 2: Skills ───────────────────────────────────────────────── -->
+    <div class="form-section" id="section-2">
+      <div class="section-header">
+        <h2>Skills & Technologies</h2>
+        <p>These will be matched against job requirements and training programs</p>
+      </div>
+      <div class="form-grid">
+        <div class="field-group">
+          <label>Programming Languages</label>
+          <div class="skills-container" id="tags-languages" onclick="focusInput(this)"></div>
+          <input class="skills-input" id="input-languages" placeholder="Type a language and press Enter..." onkeydown="handleSkillInput(event,'languages')"/>
+          <div class="skill-hint">e.g. Python, Java, C, R</div>
+        </div>
+        <div class="field-group">
+          <label>Frameworks & Libraries</label>
+          <div class="skills-container" id="tags-frameworks" onclick="focusInput(this)"></div>
+          <input class="skills-input" id="input-frameworks" placeholder="Type a framework and press Enter...'" onkeydown="handleSkillInput(event,'frameworks')"/>
+          <div class="skill-hint">e.g. TensorFlow, Scikit-Learn, Streamlit</div>
+        </div>
+        <div class="field-group">
+          <label>Tools & Platforms</label>
+          <div class="skills-container" id="tags-tools" onclick="focusInput(this)"></div>
+          <input class="skills-input" id="input-tools" placeholder="Type a tool and press Enter..." onkeydown="handleSkillInput(event,'tools')"/>
+          <div class="skill-hint">e.g. Git, GCP, MySQL, Docker</div>
+        </div>
+        <div class="field-group">
+          <label>Concepts & Domains</label>
+          <div class="skills-container" id="tags-concepts" onclick="focusInput(this)"></div>
+          <input class="skills-input" id="input-concepts" placeholder="Type a concept and press Enter..." onkeydown="handleSkillInput(event,'concepts')"/>
+          <div class="skill-hint">e.g. Machine Learning, NLP, Data Science</div>
+        </div>
+        <div class="field-group">
+          <label>Certifications</label>
+          <textarea id="certifications" placeholder="List any certifications, one per line...&#10;e.g. Google Cloud Professional&#10;AWS Solutions Architect"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Section 3: Education & Experience ──────────────────────────────── -->
+    <div class="form-section" id="section-3">
+      <div class="section-header">
+        <h2>Education & Experience</h2>
+        <p>Academic background and work history</p>
+      </div>
+      <div class="form-grid">
+        <div class="field-group">
+          <label>Highest Degree <span class="req">*</span></label>
+          <select id="degree_level">
+            <option value="">Select degree</option>
+            <option value="high_school">High School / 12th</option>
+            <option value="diploma">Diploma</option>
+            <option value="bachelors">Bachelor's Degree</option>
+            <option value="masters">Master's Degree</option>
+            <option value="phd">PhD / Doctorate</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Field of Study</label>
+          <input type="text" id="field_of_study" placeholder="e.g. Computer Science, Electronics, MBA"/>
+        </div>
+        <div class="field-group">
+          <label>Institution</label>
+          <input type="text" id="institution" placeholder="e.g. IIT Hyderabad, NIT Warangal"/>
+        </div>
+        <div class="field-group">
+          <label>Graduation Year</label>
+          <input type="text" id="grad_year" placeholder="e.g. 2028"/>
+        </div>
+        <div class="field-group span-2">
+          <label>Work Experience</label>
+          <select id="experience_years">
+            <option value="0">Fresher / No Experience</option>
+            <option value="1">Less than 1 year</option>
+            <option value="2">1–2 years</option>
+            <option value="3">3–5 years</option>
+            <option value="4">5–10 years</option>
+            <option value="5">10+ years</option>
+          </select>
+        </div>
+        <div class="field-group span-2">
+          <label>Projects (briefly describe key projects)</label>
+          <textarea id="projects" placeholder="e.g. Sentiment Analysis Tool — Python, NLTK, 92% accuracy&#10;Inventory Dashboard — React, Node.js, MongoDB"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Section 4: Preferences ─────────────────────────────────────────── -->
+    <div class="form-section" id="section-4">
+      <div class="section-header">
+        <h2>Job Preferences</h2>
+        <p>Help us match you with the right opportunities and training programs</p>
+      </div>
+      <div class="form-grid grid-2">
+        <div class="field-group">
+          <label>Employment Type <span class="req">*</span></label>
+          <select id="job_type">
+            <option value="full_time">Full-Time</option>
+            <option value="part_time">Part-Time</option>
+            <option value="internship">Internship</option>
+            <option value="contract">Contract / Freelance</option>
+            <option value="any">Open to All</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Availability</label>
+          <select id="availability">
+            <option value="immediate">Immediate</option>
+            <option value="2_weeks">2 Weeks Notice</option>
+            <option value="1_month">1 Month Notice</option>
+            <option value="3_months">3 Months Notice</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Preferred Work Mode</label>
+          <select id="work_mode">
+            <option value="hybrid">Hybrid</option>
+            <option value="remote">Remote</option>
+            <option value="onsite">On-site</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Expected Salary (₹/year)</label>
+          <input type="text" id="expected_salary" placeholder="e.g. 6,00,000"/>
+        </div>
+        <div class="field-group">
+          <label>Preferred Job Roles</label>
+          <input type="text" id="preferred_roles" placeholder="e.g. ML Engineer, Data Scientist"/>
+        </div>
+        <div class="field-group">
+          <label>Preferred Locations</label>
+          <input type="text" id="preferred_locations" placeholder="e.g. Hyderabad, Bengaluru, Remote"/>
+        </div>
+        <div class="field-group span-2">
+          <label>Languages Known</label>
+          <input type="text" id="languages_known" placeholder="e.g. English, Telugu, Hindi"/>
+        </div>
+        <div class="field-group span-2">
+          <label>Training Interests — what skills would you like to develop?</label>
+          <textarea id="training_interests" placeholder="e.g. Cloud Computing, MLOps, Advanced Deep Learning..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation buttons -->
+    <div class="form-nav">
+      <button class="btn btn-ghost" id="btn-back" onclick="prevStep()" style="visibility:hidden">← Back</button>
+      <span id="step-indicator" style="font-size:.82rem;color:var(--muted)">Step 1 of 4</span>
+      <button class="btn btn-primary" id="btn-next" onclick="nextStep()">Continue →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Success Screen ───────────────────────────────────────────────────────── -->
+<div id="success-screen">
+  <div class="success-card">
+    <div class="success-icon">🎉</div>
+    <h2>Registration Complete!</h2>
+    <p>Your DEET profile has been created. You'll be matched with relevant job openings and training programs based on your skill profile.</p>
+
+    <div class="profile-summary" id="profile-summary-display"></div>
+
+    <div class="next-steps">
+      <div class="next-card">
+        <div class="nc-icon">🎯</div>
+        <strong>Skill Gap Analysis</strong>
+        <span>Your profile is being compared against top job descriptions in your domain.</span>
+      </div>
+      <div class="next-card">
+        <div class="nc-icon">📚</div>
+        <strong>Course Recommendations</strong>
+        <span>Personalized training programs to close your skill gaps.</span>
+      </div>
+      <div class="next-card">
+        <div class="nc-icon">💼</div>
+        <strong>Job Matching</strong>
+        <span>Relevant openings will be surfaced based on your verified profile.</span>
+      </div>
+    </div>
+
+    <div class="success-actions">
+      <a id="goto-skillgap-btn" href="#" target="_blank" class="success-action-primary" style="display:none;">
+        ⚡ View My Skill Gap Report
+      </a>
+      <button class="success-action-jobs" onclick="openJobsModal()">🔍 Find Matching Jobs</button>
+      <button class="success-action-ghost" onclick="resetForm()">↩ Register Another</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Jobs Modal ────────────────────────────────────────────────────────── -->
+<div id="jobs-modal-overlay" onclick="closeJobsModalOnOverlay(event)">
+  <div id="jobs-modal">
+    <div id="jobs-modal-header">
+      <div>
+        <h3>🔍 Matching Job Openings <span class="jm-count-badge" id="jm-count">—</span></h3>
+        <div class="jm-subtitle" id="jm-subtitle">Based on your skills, preferred roles &amp; location</div>
+      </div>
+      <button class="jm-close" onclick="closeJobsModal()">✕</button>
+    </div>
+    <div id="jobs-modal-filters">
+      <span style="font-size:.78rem;color:var(--muted);align-self:center;margin-right:.3rem;">Filter:</span>
+      <button class="jm-filter-pill active" data-filter="all"         onclick="setJobFilter('all',this)">All</button>
+      <button class="jm-filter-pill"        data-filter="Entry Level"  onclick="setJobFilter('Entry Level',this)">Entry Level</button>
+      <button class="jm-filter-pill"        data-filter="Mid-Senior"   onclick="setJobFilter('Mid-Senior',this)">Mid-Senior</button>
+      <button class="jm-filter-pill"        data-filter="Senior"       onclick="setJobFilter('Senior',this)">Senior</button>
+      <button class="jm-filter-pill"        data-filter="Full-time"    onclick="setJobFilter('Full-time',this)">Full-time</button>
+      <button class="jm-filter-pill"        data-filter="Contract"     onclick="setJobFilter('Contract',this)">Contract</button>
+    </div>
+    <div id="jobs-modal-body">
+      <div id="jobs-loading">⏳ Loading jobs…</div>
+      <div id="jobs-list"></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  DEET — Digital Employment Exchange Token &nbsp;·&nbsp;
+  Employment &amp; JobTech Automation &nbsp;·&nbsp;
+  Problem #67 × #74
+</footer>
+
+<script>
+// ── State ─────────────────────────────────────────────────────────────────────
+let currentStep = 1;
+const totalSteps = 4;
+const skillSets = { languages: [], frameworks: [], tools: [], concepts: [] };
+let _pendingSkills = {};  // buffered from ?deet= prefill, flushed on step 2
+const tagColors  = { languages:'lang', frameworks:'fw', tools:'tool', concepts:'concept' };
+
+// ── Validation helpers ───────────────────────────────────────────────────────
+const VALIDATORS = {
+  name:  v => v.trim().length >= 2 && /^[a-zA-Z\s\.\-]+$/.test(v.trim()),
+  email: v => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()),
+  phone: v => {
+    const digits = v.replace(/[\s\-\+]/g, '');
+    // Must be 10 digits starting 6-9, or 12 digits starting 91 + 6-9
+    return /^[6-9]\d{9}$/.test(digits) || /^91[6-9]\d{9}$/.test(digits);
+  },
+  year:  v => /^(19|20)\d{2}$/.test(v.trim()),
+  url:   v => !v || v.startsWith('http'),
+};
+
+// Only fill a field if the extracted value passes validation
+function safeFill(id, value, validatorKey) {
+  if (!value || value === 'Not found') return;
+  const el = document.getElementById(id);
+  if (!el) return;
+  const isValid = !validatorKey || VALIDATORS[validatorKey]?.(value) !== false;
+  if (isValid) {
+    el.value = value;
+    el.classList.add('prefilled');
+  }
+  // If invalid, leave blank so user must type it manually
+}
+
+// ── Pre-fill from URL params ─────────────────────────────────────────────────
+// Priority: (1) ?deet= from resume upload, (2) ?quiz= from quiz answers
+// NO localStorage — prevents stale data from a previous session bleeding in.
+function prefillFromURL() {
+  const params = new URLSearchParams(window.location.search);
+
+  // ── SOURCE A: ?deet=<base64> — profile extracted from uploaded resume ─────
+  const deetB64 = params.get('deet');
+  if (deetB64) {
+    let profile;
+    try {
+      const b64clean = decodeURIComponent(deetB64);
+      profile = JSON.parse(atob(b64clean));
+    }
+    catch(e) { console.warn('Could not decode ?deet param', e); return; }
+
+    const per   = profile.personal   || {};
+    const skills= profile.skills     || {};
+    const edu   = profile.education  || {};
+    const exp   = profile.experience || {};
+    const pref  = profile.preferences|| {};
+
+    safeFill('full_name', per.full_name, 'name');
+    safeFill('email',     per.email,     'email');
+    safeFill('phone',     per.phone,     'phone');
+    safeFill('location',  per.location,  null);
+    safeFill('linkedin',  per.linkedin,  'url');
+    safeFill('github',    per.github,    'url');
+    safeFill('summary',   per.summary,   null);
+
+    // Skills — store in pending buffer; flushed when step 2 renders
+    // (DOM tags-* containers don't exist on step 1, so direct addTag would silently fail)
+    _pendingSkills = {};
+    ['languages','frameworks','tools','concepts'].forEach(cat => {
+      _pendingSkills[cat] = (skills[cat] || []).filter(Boolean);
+    });
+    // Fallback: skills_flat if categories empty
+    const hasCategories = ['languages','frameworks','tools','concepts'].some(c => (_pendingSkills[c]||[]).length);
+    if (!hasCategories) {
+      _pendingSkills['concepts'] = (profile.skills_flat || []).filter(Boolean);
+    }
+
+    if (exp.certifications)   safeFill('certifications',  exp.certifications,   null);
+    if (exp.projects_summary) { const el = document.getElementById('projects'); if(el) { el.value = exp.projects_summary; el.classList.add('prefilled'); } }
+    if (exp.years_category)   setSelect('experience_years', exp.years_category);
+
+    safeFill('field_of_study', edu.field_of_study, null);
+    safeFill('institution',    edu.institution,    null);
+    safeFill('grad_year',      edu.grad_year,      'year');
+    if (edu.degree_level) setSelect('degree_level', edu.degree_level);
+
+    safeFill('preferred_locations', pref.preferred_locations, null);
+    safeFill('preferred_roles',     pref.preferred_roles,     null);
+    if (pref.job_type)    setSelect('job_type',    pref.job_type);
+    if (pref.work_mode)   setSelect('work_mode',   pref.work_mode);
+    if (pref.availability) setSelect('availability', pref.availability);
+
+    document.getElementById('prefill-banner-title').textContent = '✅ Resume data loaded!';
+    document.getElementById('prefill-banner-subtitle').textContent = 'Fields have been pre-filled from your resume. Review and edit anything before submitting.';
+    document.getElementById('prefill-banner').style.display = 'block';
+    return;
+  }
+
+  // ── SOURCE B: ?quiz=<base64> — answers collected from quiz (no resume) ────
+  const quizB64 = params.get('quiz');
+  if (quizB64) {
+    let profile;
+    try {
+      profile = JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(quizB64)))));
+    }
+    catch(e) { console.warn('Could not decode ?quiz param', e); return; }
+
+    // From quiz we get: skills, roles, city, education, experience, goal
+    // We do NOT fill name/email/phone — user must type those themselves
+    const skills = profile.skills     || {};
+    const edu    = profile.education  || {};
+    const exp    = profile.experience || {};
+    const pref   = profile.preferences|| {};
+    const per    = profile.personal   || {};
+
+    // Location from city
+    if (per.location) safeFill('location', per.location, null);
+
+    // Summary from goal
+    if (per.summary) safeFill('summary', per.summary, null);
+
+    // Skills — buffer for step 2
+    _pendingSkills = {};
+    if ((profile.skills_flat || []).length) {
+      _pendingSkills['concepts'] = profile.skills_flat;
+    } else {
+      ['languages','frameworks','tools','concepts'].forEach(cat => {
+        _pendingSkills[cat] = (skills[cat] || []).filter(Boolean);
+      });
+    }
+
+    // Education
+    if (edu.degree_level) setSelect('degree_level', edu.degree_level);
+
+    // Experience years
+    if (exp.years_category) setSelect('experience_years', exp.years_category);
+
+    // Certifications
+    if (exp.certifications) safeFill('certifications', exp.certifications, null);
+
+    // Preferences
+    if (pref.preferred_roles)     safeFill('preferred_roles',     pref.preferred_roles,     null);
+    if (pref.preferred_locations) safeFill('preferred_locations', pref.preferred_locations, null);
+    if (pref.job_type)            setSelect('job_type',   pref.job_type);
+    if (pref.work_mode)           setSelect('work_mode',  pref.work_mode);
+    if (pref.availability)        setSelect('availability', pref.availability);
+
+    document.getElementById('prefill-banner-title').textContent = '📋 Quiz answers applied!';
+    document.getElementById('prefill-banner-subtitle').textContent = 'Skills, role and preferences filled from your quiz. Please enter your personal details (name, email, phone) to complete registration.';
+    document.getElementById('prefill-banner').style.display = 'block';
+    return;
+  }
+
+  // ── LEGACY FALLBACK: flat ?name=&email=... query params ──────────────────
+  if (!params.toString()) return;
+
+  safeFill('full_name', params.get('name'),     'name');
+  safeFill('email',     params.get('email'),    'email');
+  safeFill('phone',     params.get('phone'),    'phone');
+  safeFill('location',  params.get('location'), null);
+  safeFill('linkedin',  params.get('linkedin'), 'url');
+  safeFill('github',    params.get('github'),   'url');
+  safeFill('summary',   params.get('summary'),  null);
+
+  ['languages','frameworks','tools','concepts'].forEach(cat => {
+    const raw = params.get(cat);
+    if (raw) raw.split(',').forEach(s => s.trim() && addTag(cat, s.trim()));
+  });
+
+  const flat = params.get('skills_flat');
+  if (flat && !params.get('languages')) {
+    flat.split(',').forEach(s => s.trim() && addTag('concepts', s.trim()));
+  }
+
+  safeFill('certifications',      params.get('certifications'),      null);
+  safeFill('field_of_study',      params.get('field_of_study'),      null);
+  safeFill('institution',         params.get('institution'),         null);
+  safeFill('grad_year',           params.get('grad_year'),           'year');
+  safeFill('preferred_locations', params.get('preferred_locations'), null);
+
+  const projs = params.get('projects');
+  if (projs) document.getElementById('projects').value = projs;
+
+  const deg = (params.get('degree') || '').toLowerCase();
+  if      (deg.includes('b.tech') || deg.includes('bachelor')) setSelect('degree_level','bachelors');
+  else if (deg.includes('m.tech') || deg.includes('master'))   setSelect('degree_level','masters');
+  else if (deg.includes('phd') || deg.includes('ph.d'))        setSelect('degree_level','phd');
+  else if (deg.includes('diploma'))                             setSelect('degree_level','diploma');
+
+  const jtype = params.get('job_type');
+  if (jtype) setSelect('job_type', jtype);
+
+  document.getElementById('prefill-banner').style.display = 'block';
+}
+
+function setSelect(id, value) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  [...el.options].forEach(o => { if (o.value === value) o.selected = true; });
+}
+
+// ── Step navigation ───────────────────────────────────────────────────────────
+function goToStep(n) {
+  // Only allow going back to visited steps
+  if (n > currentStep) return;
+  currentStep = n;
+  renderStep();
+}
+
+function nextStep() {
+  if (!validateStep(currentStep)) return;
+  if (currentStep === totalSteps) { submitForm(); return; }
+  currentStep++;
+  renderStep();
+}
+
+function prevStep() {
+  if (currentStep > 1) { currentStep--; renderStep(); }
+}
+
+function renderStep() {
+  document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('section-' + currentStep).classList.add('active');
+
+  document.querySelectorAll('.prog-step').forEach((el, i) => {
+    el.classList.remove('active','done');
+    if (i + 1 === currentStep) el.classList.add('active');
+    else if (i + 1 < currentStep) {
+      el.classList.add('done');
+      el.querySelector('.prog-dot').textContent = '✓';
+    } else {
+      el.querySelector('.prog-dot').textContent = i + 1;
+    }
+  });
+
+  document.getElementById('step-indicator').textContent = `Step ${currentStep} of ${totalSteps}`;
+  document.getElementById('btn-back').style.visibility = currentStep > 1 ? 'visible' : 'hidden';
+  document.getElementById('btn-next').textContent = currentStep === totalSteps ? '✅ Submit Registration' : 'Continue →';
+  document.getElementById('btn-next').className = currentStep === totalSteps ? 'btn btn-submit' : 'btn btn-primary';
+
+  // Flush buffered skills into tag UI when step 2 first becomes visible
+  if (currentStep === 2) _flushPendingSkills();
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── Validation ────────────────────────────────────────────────────────────────
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  el.style.borderColor = '#ef4444';
+  el.style.boxShadow   = '0 0 0 3px rgba(239,68,68,.15)';
+  // Show inline error message
+  let err = el.parentElement.querySelector('.field-error');
+  if (!err) {
+    err = document.createElement('span');
+    err.className = 'field-error';
+    err.style.cssText = 'color:#ef4444;font-size:.75rem;margin-top:.25rem;display:block;';
+    el.parentElement.appendChild(err);
+  }
+  err.textContent = msg;
+  el.focus();
+  setTimeout(() => {
+    el.style.borderColor = '';
+    el.style.boxShadow   = '';
+    if (err) err.remove();
+  }, 3500);
+}
+
+function clearErrors() {
+  document.querySelectorAll('.field-error').forEach(e => e.remove());
+  document.querySelectorAll('input,select,textarea').forEach(el => {
+    el.style.borderColor = '';
+    el.style.boxShadow   = '';
+  });
+}
+
+function validateStep(step) {
+  clearErrors();
+  let valid = true;
+
+  if (step === 1) {
+    const name  = document.getElementById('full_name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+
+    if (!name) {
+      showError('full_name', 'Full name is required'); valid = false;
+    } else if (!VALIDATORS.name(name)) {
+      showError('full_name', 'Name should only contain letters, spaces, hyphens'); valid = false;
+    }
+
+    if (!email) {
+      showError('email', 'Email address is required'); valid = false;
+    } else if (!VALIDATORS.email(email)) {
+      showError('email', 'Enter a valid email address (e.g. name@example.com)'); valid = false;
+    }
+
+    if (!phone) {
+      showError('phone', 'Phone number is required'); valid = false;
+    } else if (!VALIDATORS.phone(phone)) {
+      showError('phone', 'Enter a valid 10-digit Indian mobile number (starting 6–9)'); valid = false;
+    }
+  }
+
+  if (step === 2) {
+    const allSkills = Object.values(skillSets).flat();
+    if (allSkills.length === 0) {
+      // Soft warning — don't block, just nudge
+      const container = document.getElementById('tags-languages');
+      container.style.borderColor = '#f59e0b';
+      container.style.boxShadow   = '0 0 0 3px rgba(245,158,11,.15)';
+      let warn = container.parentElement.querySelector('.field-error');
+      if (!warn) {
+        warn = document.createElement('span');
+        warn.className = 'field-error';
+        warn.style.cssText = 'color:#f59e0b;font-size:.75rem;margin-top:.25rem;display:block;';
+        container.parentElement.appendChild(warn);
+      }
+      warn.textContent = 'Add at least one skill to improve your job matches.';
+      setTimeout(() => { container.style.borderColor=''; container.style.boxShadow=''; if(warn) warn.remove(); }, 3500);
+      // Still allow proceeding — skills section is optional
+    }
+  }
+
+  if (step === 3) {
+    const degree = document.getElementById('degree_level').value;
+    if (!degree) {
+      showError('degree_level', 'Please select your highest degree'); valid = false;
+    }
+    const yr = document.getElementById('grad_year').value.trim();
+    if (yr && !VALIDATORS.year(yr)) {
+      showError('grad_year', 'Enter a valid 4-digit year (e.g. 2024)'); valid = false;
+    }
+  }
+
+  if (step === 4) {
+    const salary = document.getElementById('expected_salary').value.trim();
+    if (salary && !/^[\d,\.\s]+$/.test(salary)) {
+      showError('expected_salary', 'Enter salary as a number (e.g. 600000 or 6,00,000)'); valid = false;
+    }
+  }
+
+  return valid;
+}
+
+function highlight(id) { showError(id, ''); }
+
+// ── Skills tag input ──────────────────────────────────────────────────────────
+function handleSkillInput(e, cat) {
+  if (e.key === 'Enter' || e.key === ',') {
+    e.preventDefault();
+    const val = e.target.value.trim().replace(/,$/, '');
+    if (val) { addTag(cat, val); e.target.value = ''; }
+  } else if (e.key === 'Backspace' && !e.target.value && skillSets[cat].length) {
+    removeTag(cat, skillSets[cat].length - 1);
+  }
+}
+
+function addTag(cat, value) {
+  if (!value || skillSets[cat].map(s => s.toLowerCase()).includes(value.toLowerCase())) return;
+  skillSets[cat].push(value);
+  renderTags(cat);
+}
+
+function removeTag(cat, idx) {
+  skillSets[cat].splice(idx, 1);
+  renderTags(cat);
+}
+
+function renderTags(cat) {
+  const container = document.getElementById('tags-' + cat);
+  container.innerHTML = skillSets[cat].map((s, i) =>
+    `<span class="skill-tag ${tagColors[cat]}">${s}
+      <button onclick="removeTag('${cat}',${i})" title="Remove">×</button>
+    </span>`
+  ).join('');
+}
+
+function focusInput(container) {
+  const cat = container.id.replace('tags-', '');
+  document.getElementById('input-' + cat)?.focus();
+}
+
+// ── Build profile object ──────────────────────────────────────────────────────
+function buildProfile() {
+  return {
+    personal: {
+      full_name: document.getElementById('full_name').value.trim(),
+      email:     document.getElementById('email').value.trim(),
+      phone:     document.getElementById('phone').value.trim(),
+      location:  document.getElementById('location').value.trim(),
+      linkedin:  document.getElementById('linkedin').value.trim(),
+      github:    document.getElementById('github').value.trim(),
+      summary:   document.getElementById('summary').value.trim(),
+    },
+    skills: {
+      languages:  [...skillSets.languages],
+      frameworks: [...skillSets.frameworks],
+      tools:      [...skillSets.tools],
+      concepts:   [...skillSets.concepts],
+    },
+    // Flat list for Skill Gap Engine (#74)
+    skills_flat: [
+      ...skillSets.languages,
+      ...skillSets.frameworks,
+      ...skillSets.tools,
+      ...skillSets.concepts,
+    ].sort(),
+    education: {
+      degree_level:   document.getElementById('degree_level').value,
+      field_of_study: document.getElementById('field_of_study').value.trim(),
+      institution:    document.getElementById('institution').value.trim(),
+      grad_year:      document.getElementById('grad_year').value.trim(),
+    },
+    experience: {
+      years_category:   document.getElementById('experience_years').value,
+      certifications:   document.getElementById('certifications').value.trim(),
+      projects_summary: document.getElementById('projects').value.trim(),
+    },
+    preferences: {
+      job_type:            document.getElementById('job_type').value,
+      availability:        document.getElementById('availability').value,
+      work_mode:           document.getElementById('work_mode').value,
+      expected_salary:     document.getElementById('expected_salary').value.trim(),
+      preferred_roles:     document.getElementById('preferred_roles').value.trim(),
+      preferred_locations: document.getElementById('preferred_locations').value.trim(),
+      languages_known:     document.getElementById('languages_known').value.trim(),
+      training_interests:  document.getElementById('training_interests').value.trim(),
+    },
+    meta: {
+      registered_at:    new Date().toISOString(),
+      source:           'resume_auto_fill',
+      registration_status: 'complete',
+    }
+  };
+}
+
+// ── Submit ────────────────────────────────────────────────────────────────────
+function submitForm() {
+  const profile = buildProfile();
+
+  // Show success screen
+  document.getElementById('form-wrapper').style.display   = 'none';
+  document.getElementById('prefill-banner').style.display = 'none';
+  document.getElementById('success-screen').style.display = 'block';
+
+  // Summary display
+  const p = profile.personal;
+  const s = profile.skills;
+  document.getElementById('profile-summary-display').innerHTML = `
+    <div class="summary-item"><div class="s-label">Name</div><div class="s-val">${p.full_name || '—'}</div></div>
+    <div class="summary-item"><div class="s-label">Email</div><div class="s-val">${p.email || '—'}</div></div>
+    <div class="summary-item"><div class="s-label">Location</div><div class="s-val">${p.location || '—'}</div></div>
+    <div class="summary-item"><div class="s-label">Total Skills</div><div class="s-val">${profile.skills_flat.length} verified</div></div>
+    <div class="summary-item"><div class="s-label">Education</div><div class="s-val">${profile.education.field_of_study || profile.education.degree_level || '—'}</div></div>
+    <div class="summary-item"><div class="s-label">Job Type</div><div class="s-val">${profile.preferences.job_type.replace('_',' ') || '—'}</div></div>
+  `;
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // POST to FastAPI → get skill_gap_url → show ⚡ button
+  fetch('/api/v1/deet/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(profile)
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.skill_gap_url) {
+      const btn = document.getElementById('goto-skillgap-btn');
+      if (btn) {
+        btn.href = data.skill_gap_url;
+        btn.style.display = 'inline-flex';
+      }
+    }
+  })
+  .catch(() => {}); // Graceful fail if API not running
+}
+
+// ── Jobs Modal ─────────────────────────────────────────────────────────────────
+// All matching is done by the backend: POST /api/v1/jobs/search
+// The frontend only handles rendering + client-side filter pills.
+
+let _filteredJobs = [];   // full result set from backend
+let _activeFilter = 'all';
+let _totalInDB    = 0;
+let _primaryRole  = '';
+
+async function openJobsModal() {
+  document.getElementById('jobs-modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('jobs-list').innerHTML = '';
+  document.getElementById('jobs-loading').style.display = 'block';
+  document.getElementById('jobs-loading').textContent = '⏳ Finding your best matches…';
+
+  // Reset filters
+  _activeFilter = 'all';
+  document.querySelectorAll('.jm-filter-pill').forEach(p => p.classList.remove('active'));
+  document.querySelector('[data-filter="all"]').classList.add('active');
+
+  const profile = buildProfile();
+
+  // Build request payload from DEET profile
+  const prefs   = profile.preferences || {};
+  const exp     = profile.experience  || {};
+
+  // Parse cities from preferred_locations (comma-separated)
+  const cities = (prefs.preferred_locations || '')
+    .split(',').map(s => s.trim()).filter(Boolean);
+
+  // Parse roles — try preferred_roles field, else leave empty (backend picks by skills)
+  const roles = (prefs.preferred_roles || '')
+    .split(',').map(s => s.trim()).filter(Boolean);
+
+  // Map job_type form value → contractType string for backend filter
+  const CONTRACT_MAP = {
+    full_time:   'Full-time',
+    part_time:   'Part-time',
+    internship:  'Internship',
+    contract:    'Contract',
+    freelance:   'Contract',
+  };
+  const contractFilter = CONTRACT_MAP[prefs.job_type] || '';
+
+  const payload = {
+    skills_flat:   profile.skills_flat || [],
+    roles:         roles,
+    cities:        cities,
+    experience:    exp.years_category || '0',
+    contract_type: contractFilter,
+    limit:         30,
+  };
+
+  try {
+    const resp = await fetch('/api/v1/jobs/search', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(payload),
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+
+    _filteredJobs = data.jobs || [];
+    _totalInDB    = data.total_count || _filteredJobs.length;
+    _primaryRole  = data.primary_role || '';
+
+    document.getElementById('jobs-loading').style.display = 'none';
+    _renderJobCards(_filteredJobs);
+
+  } catch(e) {
+    document.getElementById('jobs-loading').innerHTML =
+      `<div class="jm-empty">
+        <div class="jm-empty-icon">⚠️</div>
+        <p>Could not reach the jobs API.<br><small>${e.message}</small></p>
+      </div>`;
+  }
+}
+
+function closeJobsModal() {
+  document.getElementById('jobs-modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function closeJobsModalOnOverlay(e) {
+  if (e.target === document.getElementById('jobs-modal-overlay')) closeJobsModal();
+}
+
+function setJobFilter(filter, el) {
+  _activeFilter = filter;
+  document.querySelectorAll('.jm-filter-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  _renderJobCards(_filteredJobs);
+}
+
+function _renderJobCards(jobs) {
+  const list = document.getElementById('jobs-list');
+
+  // Client-side filter using exp_band and job_type from backend
+  let display = jobs;
+  if (_activeFilter !== 'all') {
+    display = jobs.filter(j =>
+      j.exp_band === _activeFilter || j.job_type === _activeFilter
+    );
+  }
+
+  document.getElementById('jm-count').textContent = display.length;
+  document.getElementById('jm-subtitle').textContent =
+    `${display.length} matches from 38,000+ Indian jobs · Kaggle 2025 dataset · sorted by fit`;
+
+  if (!display.length) {
+    list.innerHTML = `<div class="jm-empty">
+      <div class="jm-empty-icon">🔎</div>
+      <p>No jobs match this filter.<br>Try "All" or broaden your preferred location.</p>
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = display.map(job => {
+    const pct        = job.skill_match_pct || 0;
+    const matchClass = pct >= 60 ? '' : pct >= 30 ? 'med' : 'low';
+    const matchLabel = pct >= 60 ? '✅ Strong Match' : pct >= 30 ? '🟡 Partial Match' : '🔵 Explore';
+    const roleTag    = job.role ? `<span class="job-chip" style="background:#eef2ff;color:#4338ca;border-color:#c7d2fe">🏷 ${_esc(job.role)}</span>` : '';
+
+    // Skills: show all, highlight matched
+    const allSkills    = (job.skills || []).slice(0, 8);
+    const matchedLower = (job.matched_skills || []).map(s => s.toLowerCase());
+    const skillTags = allSkills.map(sk => {
+      const isMatch = matchedLower.includes(sk.toLowerCase());
+      // Capitalise for display
+      const label = sk.split(' ').map(w => w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+      return `<span class="job-skill-tag ${isMatch ? 'matched' : ''}">${label}</span>`;
+    }).join('');
+
+    const applyUrl  = job.url || '#';
+    const expLabel  = job.exp ? job.exp + ' yrs exp' : '';
+    const ratingStr = job.rating ? `⭐ ${job.rating}` : '';
+    const uploadedStr = job.uploaded ? `🕐 ${job.uploaded}` : '';
+
+    return `<div class="job-card">
+      <div class="job-card-top">
+        <div style="flex:1;min-width:0">
+          <div class="job-title">${_esc(job.title)}</div>
+          <div class="job-company">🏢 ${_esc(job.company)}</div>
+        </div>
+        <span class="job-match-badge ${matchClass}">${matchLabel}<br><small>${pct}% skill fit</small></span>
+      </div>
+      <div class="job-meta">
+        ${job.location  ? `<span class="job-chip">📍 ${_esc(job.location)}</span>` : ''}
+        ${job.salary    ? `<span class="job-chip">💰 ${_esc(job.salary)}</span>` : ''}
+        ${job.exp_band  ? `<span class="job-chip" style="background:${job.exp_band==='Entry Level'?'#ecfdf5':job.exp_band==='Mid-Senior'?'#eff6ff':'#faf5ff'};color:${job.exp_band==='Entry Level'?'#065f46':job.exp_band==='Mid-Senior'?'#1e40af':'#6b21a8'};border-color:${job.exp_band==='Entry Level'?'#a7f3d0':job.exp_band==='Mid-Senior'?'#bfdbfe':'#e9d5ff'}">🎯 ${_esc(job.exp_band)}</span>` : ''}
+        ${job.job_type  ? `<span class="job-chip" style="background:${job.job_type==='Contract'?'#fff7ed':'#f0fdf4'};color:${job.job_type==='Contract'?'#9a3412':'#166534'};border-color:${job.job_type==='Contract'?'#fed7aa':'#bbf7d0'}">⏱ ${_esc(job.job_type)}</span>` : ''}
+        ${ratingStr     ? `<span class="job-chip">${ratingStr}</span>` : ''}
+        ${uploadedStr   ? `<span class="job-chip">${uploadedStr}</span>` : ''}
+        ${roleTag}
+      </div>
+      ${skillTags ? `<div class="job-skills-row">${skillTags}</div>` : ''}
+      <a href="${applyUrl}" target="_blank" rel="noopener" class="job-apply-btn">
+        🔗 Apply on Naukri
+      </a>
+    </div>`;
+  }).join('');
+}
+
+function _esc(str) {
+  return (str || '').replace(/&amp;/g,'&').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+
+function resetForm() {
+  window.location.href = window.location.pathname;
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+// Flush buffered skills from ?deet= prefill into the tag UI (runs when step 2 renders)
+function _flushPendingSkills() {
+  if (!_pendingSkills || !Object.keys(_pendingSkills).length) return;
+  ['languages','frameworks','tools','concepts'].forEach(cat => {
+    (_pendingSkills[cat] || []).forEach(s => s && addTag(cat, s));
+  });
+  _pendingSkills = {};  // clear so it doesn't re-run
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  prefillFromURL();
+  renderStep();
+});
+</script>
+</body>
+</html>

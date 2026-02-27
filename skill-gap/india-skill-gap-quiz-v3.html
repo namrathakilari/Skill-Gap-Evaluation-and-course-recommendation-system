@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>India AI Skill Gap System</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a14;
+  --surface:#12121f;
+  --card:#1a1a2e;
+  --border:#2a2a45;
+  --border2:#3a3a5c;
+  --saffron:#ff9933;
+  --white:#138808;
+  --indgreen:#138808;
+  --gold:#f5c842;
+  --teal:#00d4aa;
+  --rose:#ff4d7d;
+  --text:#f0eeff;
+  --muted:#8888bb;
+  --purple:#a78bfa;
+  --purple2:#7c3aed;
+  --accent:#6ee7b7;
+}
+html,body{height:100%;width:100%;overflow:hidden}
+body{
+  font-family:'Outfit',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  display:flex;
+  align-items:stretch;
+  justify-content:stretch;
+}
+
+/* Animated background */
+.bg-mesh{
+  position:fixed;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 10% 10%, rgba(255,153,51,.07) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 90% 90%, rgba(0,212,170,.06) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 50% 50%, rgba(124,58,237,.05) 0%, transparent 70%),
+    var(--bg);
+}
+.bg-grid{
+  position:fixed;inset:0;z-index:0;
+  background-image:linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);
+  background-size:40px 40px;
+}
+
+/* Main layout */
+.app{
+  position:relative;z-index:1;
+  width:100%;height:100vh;
+  display:grid;
+  grid-template-columns:280px 1fr;
+  grid-template-rows:1fr;
+  overflow:hidden;
+}
+
+/* LEFT SIDEBAR */
+.sidebar{
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  padding:32px 24px;
+  overflow:hidden;
+  position:relative;
+}
+.sidebar::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--saffron),#fff 33%,#fff 66%,var(--indgreen));
+}
+.brand{margin-bottom:40px}
+.brand-icon{
+  width:44px;height:44px;border-radius:12px;
+  background:linear-gradient(135deg,var(--saffron),var(--gold));
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;margin-bottom:12px;
+  box-shadow:0 4px 20px rgba(255,153,51,.3);
+}
+.brand h1{
+  font-family:'Playfair Display',serif;
+  font-size:15px;font-weight:800;
+  color:var(--text);line-height:1.3;
+  letter-spacing:-.01em;
+}
+.brand p{font-size:11px;color:var(--muted);margin-top:3px;font-weight:400}
+
+/* Step list */
+.step-list{flex:1;display:flex;flex-direction:column;gap:4px}
+.step-item{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 10px;border-radius:10px;
+  transition:all .25s;cursor:default;
+  opacity:.35;
+}
+.step-item.done{opacity:.6}
+.step-item.active{background:rgba(167,139,250,.12);opacity:1;border:1px solid rgba(167,139,250,.2)}
+.step-item.done .step-num{background:rgba(0,212,170,.15);color:var(--accent);border-color:rgba(0,212,170,.3)}
+.step-item.active .step-num{background:rgba(167,139,250,.2);color:var(--purple);border-color:rgba(167,139,250,.4)}
+.step-num{
+  width:26px;height:26px;border-radius:50%;
+  border:1.5px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;flex-shrink:0;
+  color:var(--muted);transition:all .25s;
+}
+.step-name{font-size:12px;font-weight:500;color:var(--muted);transition:color .25s}
+.step-item.active .step-name{color:var(--text);font-weight:600}
+.step-item.done .step-name{color:var(--accent)}
+
+/* Progress at bottom of sidebar */
+.sidebar-footer{margin-top:auto;padding-top:20px}
+.prog-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.prog-track{height:3px;background:var(--border);border-radius:99px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--saffron),var(--purple),var(--teal));border-radius:99px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+
+/* RIGHT CONTENT */
+.content{
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  background:var(--bg);
+}
+.content-inner{
+  flex:1;overflow-y:auto;
+  padding:48px 64px 32px;
+  scrollbar-width:thin;
+  scrollbar-color:var(--border) transparent;
+}
+.content-inner::-webkit-scrollbar{width:4px}
+.content-inner::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+
+.content-footer{
+  padding:20px 64px;
+  border-top:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;
+  background:var(--surface);
+  flex-shrink:0;
+}
+
+/* Question styles */
+.q-slide{animation:fadeUp .3s cubic-bezier(.4,0,.2,1)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.sec-label{
+  font-size:11px;font-weight:700;letter-spacing:.12em;
+  color:var(--saffron);text-transform:uppercase;margin-bottom:12px;
+  display:flex;align-items:center;gap:8px;
+}
+.sec-label::before{content:'';width:20px;height:1.5px;background:var(--saffron);display:inline-block}
+.q-text{
+  font-family:'Playfair Display',serif;
+  font-size:32px;font-weight:800;
+  color:var(--text);line-height:1.25;
+  margin-bottom:10px;
+  letter-spacing:-.02em;
+}
+.q-sub{font-size:14px;color:var(--muted);margin-bottom:32px;line-height:1.6;font-weight:400}
+
+/* Options grid */
+.og{display:grid;gap:10px}
+.og.c2{grid-template-columns:1fr 1fr}
+.og.c1{grid-template-columns:1fr}
+.opt{
+  background:var(--surface);
+  border:1.5px solid var(--border);
+  border-radius:14px;
+  padding:14px 18px;
+  cursor:pointer;text-align:left;
+  font-family:'Outfit',sans-serif;font-size:14px;font-weight:500;
+  color:var(--text);transition:all .18s;
+  display:flex;align-items:center;gap:12px;
+  position:relative;overflow:hidden;
+}
+.opt::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(167,139,250,.05),rgba(255,153,51,.03));
+  opacity:0;transition:opacity .18s;
+}
+.opt:hover{border-color:var(--border2);transform:translateY(-1px)}
+.opt:hover::before{opacity:1}
+.opt.sel{
+  border-color:var(--purple);
+  background:rgba(167,139,250,.1);
+  color:var(--text);
+}
+.opt.sel::before{opacity:1}
+.opt.sel .chk{background:var(--purple);color:#fff;border-color:var(--purple)}
+.chk{
+  width:22px;height:22px;border-radius:50%;
+  border:1.5px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;flex-shrink:0;transition:all .18s;
+  color:var(--muted);
+}
+.om{font-size:12px;color:var(--muted);font-weight:400;margin-top:2px;display:block}
+.opt.sel .om{color:rgba(167,139,250,.7)}
+
+/* Tags input */
+.tag-wrap{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px;min-height:36px}
+.stag{
+  background:rgba(167,139,250,.15);color:var(--purple);
+  border:1px solid rgba(167,139,250,.3);
+  border-radius:8px;padding:5px 11px;font-size:12px;font-weight:600;
+  display:flex;align-items:center;gap:6px;
+}
+.stag .rm{cursor:pointer;opacity:.6;font-size:13px;line-height:1}.stag .rm:hover{opacity:1}
+.ir{display:flex;gap:8px}
+.txt{
+  width:100%;padding:13px 16px;
+  border:1.5px solid var(--border);border-radius:12px;
+  font-family:'Outfit',sans-serif;font-size:14px;
+  color:var(--text);background:var(--surface);
+  outline:none;transition:border-color .2s;resize:none;
+}
+.txt:focus{border-color:var(--purple)}
+.txt::placeholder{color:var(--muted)}
+.add-btn{
+  padding:0 20px;background:var(--purple2);color:#fff;
+  border:none;border-radius:12px;cursor:pointer;
+  font-family:'Outfit',sans-serif;font-weight:700;font-size:13px;white-space:nowrap;
+  transition:opacity .2s;
+}
+.add-btn:hover{opacity:.85}
+.sug-label{font-size:11px;color:var(--muted);margin:12px 0 7px;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.sug-chips{display:flex;flex-wrap:wrap;gap:6px}
+.schip{
+  background:var(--surface);border:1.5px solid var(--border);
+  border-radius:8px;padding:4px 11px;font-size:12px;cursor:pointer;
+  transition:all .15s;font-weight:500;color:var(--muted);
+}
+.schip:hover{border-color:var(--purple);color:var(--purple);background:rgba(167,139,250,.08)}
+
+/* Certs */
+.cert-g{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cert-i{
+  background:var(--surface);border:1.5px solid var(--border);
+  border-radius:12px;padding:11px 14px;cursor:pointer;
+  transition:all .18s;display:flex;align-items:center;gap:10px;
+  font-size:13px;font-weight:500;color:var(--muted);
+}
+.cert-i:hover{border-color:var(--border2);color:var(--text)}
+.cert-i.sel{border-color:var(--purple);background:rgba(167,139,250,.1);color:var(--text);font-weight:600}
+.cchk{
+  width:18px;height:18px;border-radius:4px;border:1.5px solid var(--border2);
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;transition:all .18s;
+}
+.cert-i.sel .cchk{background:var(--purple);border-color:var(--purple);color:#fff}
+
+/* Buttons */
+.btn-back{
+  background:none;border:1.5px solid var(--border);
+  border-radius:12px;padding:12px 22px;
+  font-family:'Outfit',sans-serif;font-weight:600;font-size:14px;
+  color:var(--muted);cursor:pointer;transition:all .18s;
+}
+.btn-back:hover{border-color:var(--border2);color:var(--text)}
+.btn-next{
+  background:linear-gradient(135deg,var(--purple2),#4f46e5);
+  color:#fff;border:none;border-radius:12px;
+  padding:13px 32px;
+  font-family:'Outfit',sans-serif;font-weight:700;font-size:14px;
+  cursor:pointer;transition:all .2s;
+  box-shadow:0 4px 20px rgba(124,58,237,.35);
+  display:flex;align-items:center;gap:8px;
+}
+.btn-next:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(124,58,237,.45)}
+.btn-next:active{transform:scale(.98)}
+
+/* Warn */
+.warn{
+  background:rgba(245,200,66,.07);border:1px solid rgba(245,200,66,.2);
+  border-radius:10px;padding:12px 15px;margin-bottom:14px;
+  font-size:12px;color:rgba(245,200,66,.8);line-height:1.6;
+}
+
+/* ── RESULTS ── */
+.result-wrap{animation:fadeUp .3s ease}
+.res-hero{
+  text-align:center;padding:0 0 32px;
+  border-bottom:1px solid var(--border);margin-bottom:28px;
+}
+.res-icon{
+  width:72px;height:72px;border-radius:20px;
+  background:linear-gradient(135deg,rgba(255,153,51,.2),rgba(167,139,250,.2));
+  border:1px solid rgba(255,153,51,.3);
+  font-size:32px;display:flex;align-items:center;justify-content:center;
+  margin:0 auto 16px;
+}
+.res-hero h2{
+  font-family:'Playfair Display',serif;
+  font-size:28px;font-weight:900;color:var(--text);
+  margin-bottom:6px;letter-spacing:-.02em;
+}
+.res-hero p{color:var(--muted);font-size:13px;font-weight:400}
+
+/* Tabs */
+.tabs{display:flex;gap:2px;margin-bottom:24px;background:var(--surface);padding:4px;border-radius:12px;border:1px solid var(--border)}
+.tab{
+  flex:1;font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;
+  padding:9px 12px;cursor:pointer;color:var(--muted);
+  border:none;background:none;border-radius:9px;
+  transition:all .2s;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;
+}
+.tab.active{background:var(--card);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.tab-panel{display:none}.tab-panel.active{display:block}
+
+/* Gap cards */
+.gap-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:16px;padding:20px 22px;margin-bottom:14px;
+}
+.gap-card-title{
+  font-size:11px;font-weight:700;letter-spacing:.1em;
+  color:var(--saffron);text-transform:uppercase;margin-bottom:16px;
+}
+.gap-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 0;border-bottom:1px solid var(--border);
+}
+.gap-row:last-child{border-bottom:none}
+.gap-lbl{font-size:13px;font-weight:600;color:var(--text)}
+.gap-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.gap-bar-w{flex:1;margin:0 16px;height:5px;background:var(--border);border-radius:99px;overflow:hidden}
+.gap-bar{height:100%;border-radius:99px;transition:width .6s ease}
+.gap-bar.hi{background:linear-gradient(90deg,#059669,var(--teal))}
+.gap-bar.md{background:linear-gradient(90deg,#d97706,var(--gold))}
+.gap-bar.lo{background:linear-gradient(90deg,#dc2626,var(--rose))}
+.gap-pct{font-size:12px;font-weight:700;min-width:36px;text-align:right}
+
+.chip-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px}
+.chip{border-radius:99px;padding:5px 13px;font-size:12px;font-weight:600}
+.chip.have{background:rgba(0,212,170,.12);color:var(--teal);border:1px solid rgba(0,212,170,.25)}
+.chip.miss{background:rgba(255,153,51,.1);color:var(--saffron);border:1px solid rgba(255,153,51,.25)}
+
+/* Course cards */
+.card-grid{display:grid;gap:10px}
+.ccard{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;padding:16px;display:flex;gap:14px;
+  transition:border-color .2s,transform .2s;
+}
+.ccard:hover{border-color:var(--border2);transform:translateY(-1px)}
+.clogo{
+  width:42px;height:42px;border-radius:11px;
+  display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;
+}
+.ludemy{background:rgba(255,77,125,.15)}
+.lcoursera{background:rgba(59,130,246,.15)}
+.lnptel{background:rgba(245,200,66,.15)}
+.cinfo{flex:1;min-width:0}
+.ctitle{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.4}
+.cmrow{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.cm{font-size:11px;padding:2px 8px;border-radius:99px;font-weight:600}
+.cm.free{background:rgba(0,212,170,.12);color:var(--teal)}
+.cm.paid{background:rgba(255,77,125,.12);color:var(--rose)}
+.cm.plat{background:rgba(167,139,250,.12);color:var(--purple)}
+.cm.info{background:rgba(245,200,66,.1);color:var(--gold)}
+.csk-row{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.csk{
+  font-size:11px;background:var(--card);border:1px solid var(--border);
+  border-radius:6px;padding:2px 8px;color:var(--muted);
+}
+.link-btn{
+  display:inline-block;margin-top:8px;
+  font-size:11px;font-weight:700;color:var(--purple);
+  text-decoration:none;padding:5px 12px;
+  border:1px solid rgba(167,139,250,.3);border-radius:8px;
+  transition:all .17s;
+}
+.link-btn:hover{background:rgba(167,139,250,.1)}
+
+/* Internship cards */
+.icard{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;padding:16px;margin-bottom:10px;
+  transition:border-color .2s;
+}
+.icard:hover{border-color:var(--border2)}
+.itop{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.irole{font-size:14px;font-weight:700;color:var(--text)}
+.ico{font-size:12px;color:var(--muted);margin-top:2px}
+.ibadges{display:flex;flex-wrap:wrap;gap:5px}
+.ib{font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px}
+.wfh{background:rgba(0,212,170,.12);color:var(--teal)}
+.onsite{background:rgba(59,130,246,.12);color:#60a5fa}
+.fresh{background:rgba(245,200,66,.1);color:var(--gold)}
+.idets{display:flex;flex-wrap:wrap;gap:10px}
+.idet{font-size:12px;color:var(--muted)}
+.iskills{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.isk{font-size:11px;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:2px 8px;color:var(--muted)}
+
+/* Salary */
+.sal-row{display:flex;gap:10px;margin-top:14px}
+.sal-item{
+  flex:1;background:var(--card);border:1px solid var(--border);
+  border-radius:14px;padding:16px;text-align:center;
+  transition:border-color .2s;
+}
+.sal-item:hover{border-color:var(--border2)}
+.sal-amt{font-family:'Playfair Display',serif;font-size:18px;font-weight:800;color:var(--gold);margin-bottom:4px}
+.sal-lbl{font-size:11px;color:var(--muted);font-weight:500}
+.co-section{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:14px;padding:16px;margin-top:12px;
+  font-size:13px;color:var(--text);line-height:2;
+}
+
+@media(max-width:768px){
+  .app{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+  .sidebar{display:none}
+  .content-inner{padding:28px 24px 20px}
+  .content-footer{padding:16px 24px}
+  .og.c2,.cert-g{grid-template-columns:1fr}
+  .sal-row{flex-direction:column}
+  .q-text{font-size:24px}
+}
+
+/* ── DEET Integration ─────────────────────────────────────────────────── */
+.deet-bar{
+  position:fixed;top:0;left:0;right:0;z-index:9999;
+  background:linear-gradient(90deg,rgba(19,136,8,.12),rgba(0,212,170,.10),rgba(255,153,51,.10));
+  border-bottom:1.5px solid rgba(0,212,170,.25);
+  padding:9px 28px;display:flex;align-items:center;
+  justify-content:space-between;gap:12px;flex-wrap:wrap;
+  backdrop-filter:blur(14px);
+  font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;
+}
+.deet-bar-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.deet-bar-name{color:#f0eeff;font-size:13px;font-weight:700}
+.deet-bar-chips{display:flex;flex-wrap:wrap;gap:4px}
+.deet-chip{
+  background:rgba(167,139,250,.14);color:#a78bfa;
+  border:1px solid rgba(167,139,250,.28);
+  border-radius:99px;padding:2px 9px;font-size:11px;font-weight:600;
+}
+.deet-chip.more{background:rgba(255,153,51,.1);color:#ff9933;border-color:rgba(255,153,51,.25)}
+.deet-bar-actions{display:flex;gap:7px;flex-shrink:0}
+.deet-btn{
+  padding:5px 15px;border-radius:8px;font-size:11px;font-weight:700;
+  cursor:pointer;border:none;font-family:'Outfit',sans-serif;transition:all .2s;
+}
+.deet-btn-primary{background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;box-shadow:0 2px 10px rgba(124,58,237,.3)}
+.deet-btn-primary:hover{opacity:.9;transform:translateY(-1px)}
+.deet-btn-ghost{background:rgba(255,255,255,.06);color:#8888bb;border:1px solid rgba(255,255,255,.1)!important}
+.deet-btn-ghost:hover{color:#f0eeff;border-color:rgba(255,255,255,.2)!important}
+.app.has-bar{padding-top:44px}
+
+
+/* ── DEET Resume Upload Modal ─────────────────────────────────────────── */
+.deet-reg-strip {
+  margin-top: 28px;
+  background: linear-gradient(135deg, rgba(124,58,237,.08), rgba(0,212,170,.06));
+  border: 1.5px solid rgba(124,58,237,.25);
+  border-radius: 16px;
+  padding: 20px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap;
+}
+.deet-reg-strip-left { flex: 1; min-width: 200px; }
+.deet-reg-strip h3 { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.deet-reg-strip p  { font-size: 12px; color: var(--muted); line-height: 1.5; }
+.deet-reg-btn {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  color: #fff; border: none; border-radius: 10px;
+  padding: 11px 22px; font-family: 'Outfit', sans-serif;
+  font-weight: 700; font-size: 13px; cursor: pointer;
+  white-space: nowrap; transition: all .2s;
+  box-shadow: 0 4px 16px rgba(124,58,237,.35);
+}
+.deet-reg-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(124,58,237,.45); }
+.deet-reg-btn:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+
+/* Modal overlay */
+#deet-modal {
+  display: none; position: fixed; inset: 0; z-index: 99999;
+  background: rgba(10,10,20,.82); backdrop-filter: blur(8px);
+  align-items: center; justify-content: center; padding: 20px;
+}
+#deet-modal.open { display: flex; }
+.deet-modal-box {
+  background: #12121f; border: 1px solid rgba(167,139,250,.25);
+  border-radius: 20px; padding: 32px; width: 100%; max-width: 480px;
+  box-shadow: 0 24px 64px rgba(0,0,0,.6);
+  animation: modalIn .22s cubic-bezier(.4,0,.2,1);
+}
+@keyframes modalIn { from { opacity:0; transform:scale(.94) translateY(12px); } to { opacity:1; transform:none; } }
+.deet-modal-box h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px; font-weight: 800; color: #f0eeff; margin-bottom: 8px;
+}
+.deet-modal-box p { font-size: 13px; color: #8888bb; line-height: 1.6; margin-bottom: 20px; }
+
+.deet-drop-zone {
+  border: 2px dashed rgba(167,139,250,.35);
+  border-radius: 14px; padding: 32px 20px;
+  text-align: center; cursor: pointer;
+  transition: all .2s; background: rgba(124,58,237,.04);
+}
+.deet-drop-zone.drag-over {
+  border-color: #a78bfa; background: rgba(124,58,237,.1);
+}
+.deet-drop-zone input[type=file] { display: none; }
+.deet-drop-icon { font-size: 36px; margin-bottom: 10px; }
+.deet-drop-text { font-size: 14px; font-weight: 600; color: #a78bfa; margin-bottom: 4px; }
+.deet-drop-sub  { font-size: 12px; color: #8888bb; }
+
+.deet-file-info {
+  display: none; background: rgba(0,212,170,.07);
+  border: 1px solid rgba(0,212,170,.2); border-radius: 10px;
+  padding: 12px 16px; font-size: 13px; color: #00d4aa; font-weight: 600;
+  display: none; align-items: center; gap: 10px; margin-top: 12px;
+}
+.deet-file-info.visible { display: flex; }
+
+.deet-modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+.deet-modal-submit {
+  flex: 1; padding: 12px; border-radius: 10px; border: none; cursor: pointer;
+  background: linear-gradient(135deg, #7c3aed, #4f46e5); color: white;
+  font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 14px;
+  transition: all .2s; box-shadow: 0 4px 16px rgba(124,58,237,.3);
+}
+.deet-modal-submit:hover { transform: translateY(-1px); }
+.deet-modal-submit:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+.deet-modal-cancel {
+  padding: 12px 20px; border-radius: 10px; cursor: pointer;
+  background: none; border: 1.5px solid rgba(255,255,255,.1);
+  color: #8888bb; font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 14px;
+  transition: all .2s;
+}
+.deet-modal-cancel:hover { border-color: rgba(255,255,255,.25); color: #f0eeff; }
+
+.deet-status {
+  margin-top: 14px; font-size: 12px; font-weight: 600;
+  text-align: center; min-height: 18px;
+}
+.deet-status.loading { color: #a78bfa; }
+.deet-status.success { color: #00d4aa; }
+.deet-status.error   { color: #ff4d7d; }
+
+.deet-spinner {
+  display: inline-block; width: 14px; height: 14px;
+  border: 2px solid rgba(167,139,250,.3); border-top-color: #a78bfa;
+  border-radius: 50%; animation: spin .7s linear infinite; margin-right: 6px;
+  vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+</style>
+</head>
+<body>
+
+<div id="deet-bar" style="display:none" class="deet-bar">
+  <div class="deet-bar-left">
+    <span>🎯</span>
+    <span class="deet-bar-name" id="deet-bar-name">Resume Loaded</span>
+    <span style="color:#8888bb;font-weight:400">Skills detected:</span>
+    <div class="deet-bar-chips" id="deet-bar-chips"></div>
+  </div>
+  <div class="deet-bar-actions">
+    <button class="deet-btn deet-btn-primary" onclick="deetSkipToReport()">⚡ Jump to My Report</button>
+    <button class="deet-btn deet-btn-ghost"   onclick="deetStartQuiz()">✏️ Walk me through quiz</button>
+  </div>
+</div>
+
+<div class="bg-mesh"></div>
+<div class="bg-grid"></div>
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">🎓</div>
+      <h1>AI Skill Gap<br>Identification</h1>
+      <p>India Job Market · 2024</p>
+    </div>
+    <div class="step-list" id="step-list"></div>
+    <div class="sidebar-footer">
+      <div class="prog-label">
+        <span id="prog-step">Step 1 of 8</span>
+        <span id="prog-pct">12%</span>
+      </div>
+      <div class="prog-track">
+        <div class="prog-fill" id="prog-fill" style="width:12%"></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- CONTENT -->
+  <main class="content">
+    <div class="content-inner" id="qbody"></div>
+    <div class="content-footer">
+      <button class="btn-back" id="btn-back" onclick="goBack()" style="visibility:hidden">← Back</button>
+      <button class="btn-next" id="btn-next" onclick="goNext()">Continue <span>→</span></button>
+    </div>
+  </main>
+</div>
+
+<script>
+let DB = null;
+let DATA_LOADED = false;
+let cur=0, ans={}, tags=[], certs_sel=[];
+
+// DEET integration globals
+let _DEET = null;   // parsed profile object from DEET portal
+
+
+const ROLE_ICONS = {"Software / Full-Stack Engineering":"💻","Data Science / Analytics":"📊","AI / ML Engineering":"🤖","Cloud / DevOps":"☁️","Cybersecurity":"🔐","Product Management":"🏢","Digital Marketing / Growth":"📣","Finance / BFSI":"💰"};
+const ALL_ROLES = Object.keys(ROLE_ICONS);
+
+const CERTS = {"Software / Full-Stack Engineering":["AWS Certified Developer","Google Cloud ACE","Oracle Java SE","Microsoft AZ-900"],"Data Science / Analytics":["Google Data Analytics","IBM Data Science","Tableau Desktop Specialist","Microsoft PL-300"],"AI / ML Engineering":["TensorFlow Developer Cert","AWS ML Specialty","DeepLearning.AI Specialization","Google ML Engineer"],"Cloud / DevOps":["AWS Solutions Architect","CKA (Kubernetes)","HashiCorp Terraform Associate","Azure DevOps Expert"],"Cybersecurity":["CEH","CompTIA Security+","CISSP","ISO 27001 Lead Auditor"],"Product Management":["Google PM Certificate","Scrum Master (CSM)","AIPMM CPMR","Pragmatic Institute"],"Digital Marketing / Growth":["Google Ads Cert","Meta Blueprint","HubSpot Content Marketing","SEMrush SEO Toolkit"],"Finance / BFSI":["CFA Level 1","FRM","NSE NCFM","NISM Series XV"]};
+
+const CITIES=[{l:"🟢 Bengaluru",s:"Silicon Valley of India"},{l:"🟢 Hyderabad",s:"HITEC City"},{l:"🔵 Mumbai",s:"Financial Capital"},{l:"🔵 Pune",s:"IT & Manufacturing Hub"},{l:"🟡 Delhi-NCR / Gurugram",s:"Startup Capital North"},{l:"🟡 Chennai",s:"Automotive & IT Hub"},{l:"🟡 Noida / Greater Noida",s:"Growing Tech Hub"},{l:"⚪ Kolkata",s:"Eastern Hub"},{l:"🟢 Ahmedabad / Vadodara",s:"Emerging Hub"},{l:"⚪ Tier-2 / Remote",s:"Remote roles growing"}];
+
+async function loadData(){
+  try{
+    const r=await fetch('./output/db.json',{cache:'no-cache'});
+    if(!r.ok)throw new Error();
+    DB=await r.json();DATA_LOADED=true;
+  }catch(e){DATA_LOADED=false;}
+  _deetInit();   // read DEET profile AFTER db.json is loaded (need DB for skill normalisation)
+  render();
+}
+
+function stripIcon(s){return s.replace(/^[^\w\s]+\s/,'')}
+function matchRole(rf){const c=stripIcon(rf);return ALL_ROLES.find(r=>c.includes(r)||r.includes(c.split('/')[0].trim()))||null}
+function getRoleData(role){return DATA_LOADED&&DB&&DB.roles&&DB.roles[role]?DB.roles[role]:null}
+function getSugSkills(roles){const sk=new Set();roles.forEach(r=>{const m=matchRole(r);const d=m?getRoleData(m):null;if(d&&d.topSkills)d.topSkills.forEach(s=>sk.add(s))});return[...sk].slice(0,18)}
+function getRelCerts(roles){const c=new Set();roles.forEach(r=>{const m=matchRole(r);if(m&&CERTS[m])CERTS[m].forEach(x=>c.add(x))});if(!c.size)Object.values(CERTS).flat().forEach(x=>c.add(x));return[...c].slice(0,11)}
+function renderTags(){return tags.map(t=>`<span class="stag">${t}<span class="rm" onclick="removeTag('${t}')">×</span></span>`).join('')}
+function quickAdd(sk){if(!tags.includes(sk)){tags.push(sk);ans[STEPS[cur].key]=[...tags];document.getElementById('tw').innerHTML=renderTags()}}
+function addTag(){const i=document.getElementById('ti');const v=i.value.trim();if(v&&!tags.includes(v)){tags.push(v);ans[STEPS[cur].key]=[...tags];document.getElementById('tw').innerHTML=renderTags()}i.value='';i.focus()}
+function removeTag(t){tags=tags.filter(x=>x!==t);ans[STEPS[cur].key]=[...tags];document.getElementById('tw').innerHTML=renderTags()}
+function togCert(c){if(c==='None yet'){certs_sel=certs_sel.includes('None yet')?[]:['None yet']}else{certs_sel=certs_sel.filter(x=>x!=='None yet');certs_sel=certs_sel.includes(c)?certs_sel.filter(x=>x!==c):[...certs_sel,c]}ans[STEPS[cur].key]=[...certs_sel];render()}
+function selOpt(idx){const s=STEPS[cur],label=s.opts[idx].l;if(s.type==='multi'){let a=ans[s.key]||[];a=a.includes(label)?a.filter(x=>x!==label):[...a,label];ans[s.key]=a}else ans[s.key]=label;render()}
+function goBack(){if(cur>0){cur--;render()}}
+function goNext(){const s=STEPS[cur];if(s.type==='textarea'){const v=document.getElementById('tai')?.value.trim();if(v)ans[s.key]=v}cur++;render()}
+
+const STEPS=[
+  {sec:"Career Status",icon:"🧭",q:"What is your current career situation?",sub:"Choose the option that best describes you.",type:"single",cols:2,key:"status",co:"",opts:[{l:"🔍 Actively job seeking",s:"Looking for a new role"},{l:"💼 Employed — want to switch",s:"Upskilling for a career change"},{l:"🎓 Recent graduate (< 1 yr)",s:"Fresher entering the workforce"},{l:"📚 Student / Final year",s:"Still in college"},{l:"🏠 Career gap / Re-entering",s:"Returning after a break"},{l:"🚀 Entrepreneur / Freelancer",s:"Looking to pivot or formalise skills"}]},
+  {sec:"Location",icon:"📍",q:"Which city are you based in (or targeting)?",sub:"Select the city you are based in or targeting for your next role.",type:"single",cols:2,key:"city",co:"",opts:CITIES},
+  {sec:"Education",icon:"🎓",q:"What is your highest level of education?",sub:"Select your highest qualification.",type:"single",cols:2,key:"education",co:"",opts:[{l:"10th / HSC (Class 12)",s:""},{l:"Diploma (Engineering / Polytechnic)",s:""},{l:"B.E. / B.Tech",s:""},{l:"BCA / B.Sc (CS / IT)",s:""},{l:"BBA / B.Com",s:""},{l:"M.E. / M.Tech",s:""},{l:"MBA",s:""},{l:"MCA / M.Sc (CS)",s:""},{l:"Bootcamp / Self-Taught",s:""},{l:"PhD",s:""}]},
+  {sec:"Experience",icon:"⏱️",q:"How many years of relevant work experience do you have?",sub:"Select your years of relevant work experience.",type:"single",cols:2,key:"experience",co:"",opts:[{l:"👶 0 — Fresher",s:""},{l:"🌱 < 1 year",s:"Internships / part-time"},{l:"🚀 1 – 3 years",s:"Junior / Associate"},{l:"💼 3 – 5 years",s:"Mid-level"},{l:"🏆 5 – 10 years",s:"Senior professional"},{l:"🎯 10+ years",s:"Lead / Principal / Manager"}]},
+  {sec:"Target Role",icon:"🎯",q:"Which domain(s) are you targeting?",sub:"Select all domains you are interested in pursuing.",type:"multi",cols:2,key:"roles",co:"",opts:[]},
+  {sec:"Current Skills",icon:"🛠️",q:"What technical skills do you currently have?",sub:"Add the technical skills you currently have.",type:"tags",key:"skills",co:""},
+  {sec:"Certifications",icon:"🏅",q:"Which certifications do you currently hold?",sub:"Select certifications you currently hold.",type:"certs",key:"certs",co:""},
+  {sec:"Career Goal",icon:"🌟",q:"What is your #1 goal for the next 6 months?",sub:"Be specific — target role, company type, salary in LPA.",type:"textarea",key:"goal",co:"",placeholder:"e.g. Get a Data Analyst role at a product-based startup in Bengaluru at ₹12–15 LPA..."}
+];
+
+function updateSidebar(){
+  const list=document.getElementById('step-list');
+  list.innerHTML=STEPS.map((s,i)=>{
+    const cl=i<cur?'done':i===cur?'active':'';
+    return`<div class="step-item ${cl}">
+      <div class="step-num">${i<cur?'✓':s.icon}</div>
+      <div class="step-name">${s.sec}</div>
+    </div>`;
+  }).join('');
+  const pct=Math.round(((cur+1)/STEPS.length)*100);
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-step').textContent=cur>=STEPS.length?'Complete':`Step ${cur+1} of ${STEPS.length}`;
+  document.getElementById('prog-pct').textContent=pct+'%';
+}
+
+function render(){
+  if(cur>=STEPS.length){showResult();return}
+  const s=STEPS[cur],total=STEPS.length;
+  document.getElementById('btn-back').style.visibility=cur===0?'hidden':'visible';
+  document.getElementById('btn-next').innerHTML=cur===total-1?'Analyse My Gaps <span>→</span>':'Continue <span>→</span>';
+  updateSidebar();
+
+  if(s.key==='roles'){
+    s.opts=ALL_ROLES.map(r=>{const d=getRoleData(r);const idx=d&&d.demandIndex!=null?d.demandIndex:null;return{l:`${ROLE_ICONS[r]} ${r}`,s:idx!=null?`Demand index: ${idx}/100`:'',};});
+  }
+
+  const body=document.getElementById('qbody');
+
+  if(s.type==='tags'){
+    tags=ans[s.key]||[];const sug=getSugSkills(ans['roles']||[]);
+    body.innerHTML=`<div class="q-slide">
+      <div class="sec-label">${s.sec}</div>
+      <div class="q-text">${s.q}</div>
+      <div class="q-sub">${s.sub}</div>
+      <div class="tag-wrap" id="tw">${renderTags()}</div>
+      <div class="ir"><input class="txt" id="ti" placeholder="Type a skill and press Enter…" onkeydown="if(event.key==='Enter'){addTag();event.preventDefault()}"/><button class="add-btn" onclick="addTag()">+ Add</button></div>
+      ${sug.length?`<div class="sug-label">Suggested skills for your target roles</div><div class="sug-chips">${sug.map(sk=>`<span class="schip" onclick="quickAdd('${sk}')">${sk}</span>`).join('')}</div>`:''}
+    </div>`;return;
+  }
+  if(s.type==='textarea'){
+    body.innerHTML=`<div class="q-slide">
+      <div class="sec-label">${s.sec}</div>
+      <div class="q-text">${s.q}</div>
+      <div class="q-sub">${s.sub}</div>
+      <textarea class="txt" rows="6" placeholder="${s.placeholder}" id="tai">${ans[s.key]||''}</textarea>
+    </div>`;return;
+  }
+  if(s.type==='certs'){
+    certs_sel=ans[s.key]||[];const allC=getRelCerts(ans['roles']||[]);
+    body.innerHTML=`<div class="q-slide">
+      <div class="sec-label">${s.sec}</div>
+      <div class="q-text">${s.q}</div>
+      <div class="q-sub">${s.sub}</div>
+      <div class="cert-g">${allC.map(c=>{const sel=certs_sel.includes(c);return`<div class="cert-i ${sel?'sel':''}" onclick="togCert('${c}')"><div class="cchk">${sel?'✓':''}</div><span>${c}</span></div>`}).join('')}<div class="cert-i ${certs_sel.includes('None yet')?'sel':''}" onclick="togCert('None yet')"><div class="cchk">${certs_sel.includes('None yet')?'✓':''}</div><span>None yet</span></div></div>
+    </div>`;return;
+  }
+  const cv=ans[s.key];
+  body.innerHTML=`<div class="q-slide">
+    <div class="sec-label">${s.sec}</div>
+    <div class="q-text">${s.q}</div>
+    <div class="q-sub">${s.sub}</div>
+    <div class="og ${s.cols===2?'c2':'c1'}">${s.opts.map((o,i)=>{const sel=s.type==='multi'?(Array.isArray(cv)&&cv.includes(o.l)):cv===o.l;return`<button class="opt ${sel?'sel':''}" onclick="selOpt(${i})"><span class="chk">${sel?'✓':''}</span><span><span>${o.l}</span>${o.s?`<span class="om">${o.s}</span>`:''}</span></button>`}).join('')}</div>
+  </div>`;
+}
+
+function computeGaps(){
+  const userSk=(ans.skills||[]).map(s=>s.toLowerCase());
+  return(ans.roles||[]).map(rf=>{
+    const m=matchRole(rf);if(!m)return null;
+    const rd=getRoleData(m);
+    if(!rd||!rd.topSkills||!rd.topSkills.length)return{role:m,matchPct:null,have:[],missing:[],rd:rd||{},noData:true};
+    const have=rd.topSkills.filter(s=>userSk.some(u=>u.includes(s.toLowerCase())||s.toLowerCase().includes(u)));
+    const missing=rd.topSkills.filter(s=>!userSk.some(u=>u.includes(s.toLowerCase())||s.toLowerCase().includes(u)));
+    return{role:m,matchPct:Math.round((have.length/rd.topSkills.length)*100),have,missing,rd,noData:false};
+  }).filter(Boolean);
+}
+
+function recommendCourses(gaps){
+  if(!DATA_LOADED||!DB||!DB.courses)return[];
+  const missing=[...new Set(gaps.flatMap(g=>g.missing))];
+  const seen=new Set();const recs=[];
+  missing.forEach(sk=>{
+    const key=Object.keys(DB.courses).find(k=>sk.toLowerCase().includes(k.toLowerCase())||k.toLowerCase().includes(sk.toLowerCase()));
+    if(key)DB.courses[key].forEach(c=>{if(!seen.has(c.title)){seen.add(c.title);recs.push({...c,forSkill:sk})}});
+  });
+  return recs.sort((a,b)=>(b.rating||0)-(a.rating||0)).slice(0,8);
+}
+
+function getInternships(roles){
+  if(!DATA_LOADED||!DB||!DB.internships)return[];
+  const out=[];const seen=new Set();
+  roles.forEach(rf=>{const m=matchRole(rf);if(m&&DB.internships[m])DB.internships[m].forEach(i=>{if(!seen.has(i.role)){seen.add(i.role);out.push({...i,forRole:m})}})});
+  return out.slice(0,6);
+}
+
+function showResult(){
+  document.getElementById('btn-back').style.visibility='hidden';
+  document.getElementById('btn-next').style.display='none';
+  document.getElementById('prog-fill').style.width='100%';
+  document.getElementById('prog-step').textContent='Complete';
+  document.getElementById('prog-pct').textContent='100%';
+  document.getElementById('step-list').innerHTML=STEPS.map(s=>`<div class="step-item done"><div class="step-num">✓</div><div class="step-name">${s.sec}</div></div>`).join('');
+
+  const gaps=computeGaps();
+  const courses=recommendCourses(gaps);
+  const interns=getInternships(ans.roles||[]);
+  const topGap=gaps.length?[...gaps].sort((a,b)=>(b.rd?.demandIndex||0)-(a.rd?.demandIndex||0))[0]:null;
+
+  const gapRows=gaps.map(g=>{
+    if(g.noData)return`<div class="gap-row"><div><div class="gap-lbl">${g.role}</div><div class="gap-sub">No data available</div></div><div class="gap-pct" style="color:var(--muted)">—</div></div>`;
+    const bc=g.matchPct>=70?'hi':g.matchPct>=40?'md':'lo';
+    const col=g.matchPct>=70?'var(--teal)':g.matchPct>=40?'var(--gold)':'var(--rose)';
+    return`<div class="gap-row"><div><div class="gap-lbl">${g.role}</div><div class="gap-sub">Gaps: ${g.missing.slice(0,4).join(', ')||'None!'}</div></div><div class="gap-bar-w"><div class="gap-bar ${bc}" style="width:${g.matchPct}%"></div></div><div class="gap-pct" style="color:${col}">${g.matchPct}%</div></div>`;
+  }).join('');
+
+  const courseCards=courses.length?courses.map(c=>{
+    const p=c.platform||'';const pc=p==='NPTEL'?'nptel':p==='Udemy'?'udemy':'coursera';const pe=p==='NPTEL'?'📚':p==='Udemy'?'🎬':'🎓';
+    return`<div class="ccard"><div class="clogo l${pc}">${pe}</div><div class="cinfo">
+      <div class="ctitle">${c.title}</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:4px">${c.by?`by ${c.by} · `:''}${c.rating?`⭐ ${c.rating} · `:''}Bridges: <strong style="color:var(--text)">${c.forSkill}</strong></div>
+      <div class="cmrow"><span class="cm plat">${p}</span>${c.cost?`<span class="cm ${String(c.cost).toLowerCase().includes('free')?'free':'paid'}">${c.cost}</span>`:''}${c.subscribers?`<span class="cm info">${(c.subscribers/1000).toFixed(0)}K students</span>`:''}</div>
+      ${c.skills&&c.skills.length?`<div class="csk-row">${c.skills.slice(0,5).map(s=>`<span class="csk">${s}</span>`).join('')}</div>`:''}
+      ${c.url&&!c.url.includes('coursera.org')&&!c.url.includes('udemy.com')?`<a class="link-btn" href="${c.url}" target="_blank">View →</a>`:''}
+    </div></div>`;}).join('')
+    :`<div class="warn">No courses found for your selected skills.</div>`;
+
+  const internCards=interns.length?interns.map(i=>`
+    <div class="icard"><div class="itop">
+      <div><div class="irole">${i.role}</div><div class="ico">${i.company||''}</div></div>
+      <div class="ibadges"><span class="ib ${i.wfh?'wfh':'onsite'}">${i.wfh?'🏠 WFH':'🏢 On-site'}</span><span class="ib fresh">✅ Freshers OK</span></div>
+    </div>
+    <div class="idets">${i.stipend?`<span class="idet">💰 ${i.stipend}</span>`:''} ${i.duration?`<span class="idet">⏱ ${i.duration}</span>`:''} ${i.location?`<span class="idet">📍 ${i.location}</span>`:''}</div>
+    ${i.skills&&i.skills.length?`<div class="iskills">${i.skills.slice(0,5).map(s=>`<span class="isk">${s}</span>`).join('')}</div>`:''}
+    </div>`).join('')
+    :`<div class="warn">No internships found for your target roles.</div>`;
+
+  const salSection=topGap&&!topGap.noData&&(topGap.rd.salaryFresher||topGap.rd.salaryMid)?`
+    <div class="gap-card"><div class="gap-card-title">💰 ${topGap.role} — Salary Bands</div>
+      <div class="sal-row">
+        <div class="sal-item"><div class="sal-amt">${topGap.rd.salaryFresher||'—'}</div><div class="sal-lbl">Fresher / 0–1 yr</div></div>
+        <div class="sal-item"><div class="sal-amt">${topGap.rd.salaryMid||'—'}</div><div class="sal-lbl">Mid-Level / 3–5 yr</div></div>
+        <div class="sal-item"><div class="sal-amt">${topGap.rd.salarySenior||'—'}</div><div class="sal-lbl">Senior / 8+ yr</div></div>
+      </div></div>
+    ${topGap.rd.topCos&&topGap.rd.topCos.length?`<div class="co-section"><strong>🏆 Top Companies</strong><br>${topGap.rd.topCos.join(' · ')}<br><br><strong>📍 Top Cities</strong><br>${(topGap.rd.topCities||[]).join(' → ')}</div>`:''}`
+    :`<div class="warn">Salary data not available for this role.</div>`;
+
+  document.getElementById('qbody').innerHTML=`<div class="result-wrap">
+    <div class="res-hero">
+      <div class="res-icon">🎯</div>
+      <h2>Your India Job Market Skill Gap Report</h2>
+      <p>India Job Market Analysis — ${new Date().toLocaleDateString('en-IN',{month:'long',year:'numeric'})}</p>
+      ${_DEET ? `<div style="margin-top:12px;display:inline-flex;flex-wrap:wrap;align-items:center;gap:10px;
+         background:rgba(0,212,170,.07);border:1px solid rgba(0,212,170,.2);
+         border-radius:10px;padding:8px 18px;font-size:12px;font-weight:600;color:#00d4aa">
+         👤 ${_DEET.personal?.full_name||''}
+         ${_DEET.personal?.email ? `<span style="color:#8888bb;font-weight:400">· ${_DEET.personal.email}</span>` : ''}
+         ${_DEET.meta?.profile_score ? `<span style="color:#f5c842">· DEET Score: ${_DEET.meta.profile_score}/100</span>` : ''}
+         <span style="color:#8888bb;font-weight:400">· ${(ans.skills||[]).length} skills matched</span>
+       </div>` : ''}
+    </div>
+    <div class="tabs">
+      <button class="tab active" onclick="swTab('gaps',this)">📊 Skill Gaps</button>
+      <button class="tab" onclick="swTab('courses',this)">📚 Courses${courses.length?` (${courses.length})`:''}</button>
+      <button class="tab" onclick="swTab('internships',this)">🏢 Internships${interns.length?` (${interns.length})`:''}</button>
+      <button class="tab" onclick="swTab('market',this)">💼 Market Data</button>
+    </div>
+    <div class="tab-panel active" id="panel-gaps">
+      ${gaps.length?`<div class="gap-card"><div class="gap-card-title">📊 Skill Match vs Market Demand</div>${gapRows}</div>`:'<p style="color:var(--muted);padding:16px 0">Select target roles to see gap analysis.</p>'}
+      ${(ans.skills||[]).length?`<p style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.07em">✅ Skills You Have</p><div class="chip-row">${(ans.skills||[]).slice(0,10).map(s=>`<span class="chip have">${s}</span>`).join('')}</div>`:''}
+      ${gaps.some(g=>!g.noData&&g.missing.length)?`<p style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px;margin-top:12px;text-transform:uppercase;letter-spacing:.07em">⚠️ Priority Gaps</p><div class="chip-row">${[...new Set(gaps.flatMap(g=>g.missing))].slice(0,8).map(s=>`<span class="chip miss">⚠️ ${s}</span>`).join('')}</div>`:''}
+    </div>
+    <div class="tab-panel" id="panel-courses">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Courses matched to your skill gaps, sorted by rating and popularity.</p>
+      <div class="card-grid">${courseCards}</div>
+    </div>
+    <div class="tab-panel" id="panel-internships">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Internship listings matched to your target roles. All open to freshers.</p>
+      ${internCards}
+    </div>
+    <div class="tab-panel" id="panel-market">
+      ${salSection}
+      ${gaps.length>1?`<div class="gap-card" style="margin-top:14px"><div class="gap-card-title">📊 Demand Index — Target Roles (normalised 0–100)</div>
+        ${gaps.map(g=>{const d=g.rd?.demandIndex;const bc=d>=70?'hi':d>=40?'md':'lo';return`<div class="gap-row"><div><div class="gap-lbl">${g.role}</div></div><div class="gap-bar-w">${d!=null?`<div class="gap-bar ${bc}" style="width:${d}%"></div>`:''}</div><div class="gap-pct">${d!=null?d+'/100':'—'}</div></div>`}).join('')}
+      </div>`:''}
+    </div>
+  </div>`;
+}
+
+function swTab(id,btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-'+id).classList.add('active');
+}
+
+loadData();
+
+// ══════════════════════════════════════════════════════════════════════════════
+// DEET INTEGRATION LAYER
+// Reads profile from: (1) URL param ?deet=<encoded JSON>  (2) localStorage
+// Maps DEET profile → quiz ans{} → calls computeGaps() directly
+// Zero changes to teammate's original logic — purely additive
+// ══════════════════════════════════════════════════════════════════════════════
+
+function _deetInit() {
+  // ── Read profile ────────────────────────────────────────────────────────
+  let profile = null;
+
+  // Source A: URL param ?deet=<base64-encoded JSON>
+  try {
+    const raw = new URLSearchParams(window.location.search).get('deet');
+    if (raw) profile = JSON.parse(atob(decodeURIComponent(raw)));
+  } catch(e) {}
+
+  // Source B: quiz-only path (?quiz= param set by "Register with Quiz Answers" button)
+  if (!profile) {
+    try {
+      const rawQ = new URLSearchParams(window.location.search).get('quiz');
+      if (rawQ) profile = JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(rawQ)))));
+    } catch(e) {}
+  }
+
+  if (!profile) return;  // No DEET data — run normal quiz
+
+  _DEET = profile;
+
+  // ── Map profile → ans{} ─────────────────────────────────────────────────
+  const personal = profile.personal || {};
+  const prefs    = profile.preferences || {};
+  const edu      = profile.education  || {};
+  const exp      = profile.experience || {};
+
+  // skills: normalize casing against db.json topSkills
+  ans.skills = _normSkills(profile.skills_flat || []);
+
+  // roles: infer from skills + preferences
+  ans.roles = _inferRoles(profile).map(r => `${ROLE_ICONS[r]||'🎯'} ${r}`);
+
+  // education
+  const degMap = {bachelors:'B.E. / B.Tech', masters:'M.E. / M.Tech', phd:'PhD', diploma:'Diploma (Engineering / Polytechnic)'};
+  ans.education = degMap[edu.degree_level] || 'B.E. / B.Tech';
+
+  // experience
+  const expMap = {'0':'👶 0 — Fresher','1':'🌱 < 1 year','2':'🚀 1 – 3 years','3':'💼 3 – 5 years','4':'🏆 5 – 10 years','5':'🎯 10+ years'};
+  ans.experience = expMap[exp.years_category || '0'] || '👶 0 — Fresher';
+
+  // city: fuzzy match against quiz CITIES list
+  const cityRaw = (personal.location || '').split(',')[0].trim().toLowerCase();
+  const cityHit = CITIES.find(c => c.l.toLowerCase().includes(cityRaw) || cityRaw.includes(c.l.replace(/^[^\w]+/,'').split(' ')[0].toLowerCase()));
+  ans.city = cityHit ? cityHit.l : '';
+
+  // status
+  ans.status = '🔍 Actively job seeking';
+
+  // goal from summary
+  if (personal.summary && personal.summary.length > 10) ans.goal = personal.summary;
+
+  // certs
+  ans.certs = profile.experience?.certifications
+    ? profile.experience.certifications.split('\n').filter(Boolean).slice(0, 4)
+    : [];
+
+  // ── Show banner ─────────────────────────────────────────────────────────
+  const bar   = document.getElementById('deet-bar');
+  const chips = document.getElementById('deet-bar-chips');
+  const nameEl= document.getElementById('deet-bar-name');
+
+  if (personal.full_name) nameEl.textContent = personal.full_name + ' — Resume Loaded';
+  
+  const displaySkills = ans.skills.slice(0, 7);
+  const extra = ans.skills.length - displaySkills.length;
+  chips.innerHTML =
+    displaySkills.map(s => `<span class="deet-chip">${s}</span>`).join('') +
+    (extra > 0 ? `<span class="deet-chip more">+${extra} more</span>` : '');
+
+  // Auto-skip to report if redirected from DEET portal with skipToReport=1
+  const autoSkip = new URLSearchParams(window.location.search).get('skipToReport');
+  if (autoSkip === '1') {
+    // Wait for DATA_LOADED then jump directly to report
+    const _trySkip = () => {
+      if (!DATA_LOADED) { setTimeout(_trySkip, 150); return; }
+      deetSkipToReport();
+    };
+    setTimeout(_trySkip, 100);
+    return; // don't show banner — go straight to report
+  }
+
+  bar.style.display = 'flex';
+  document.querySelector('.app').classList.add('has-bar');
+}
+
+// Normalize resume skill names to match db.json topSkills (case-insensitive)
+function _normSkills(rawSkills) {
+  const knownMap = {};
+  if (DB && DB.roles) {
+    Object.values(DB.roles).forEach(r => {
+      (r.topSkills || []).forEach(s => { knownMap[s.toLowerCase()] = s; });
+    });
+  }
+  return rawSkills.map(raw => knownMap[raw.toLowerCase()] || raw);
+}
+
+// Infer top 3 canonical roles from profile signals
+function _inferRoles(profile) {
+  const signals = {
+    'Data Science / Analytics':         ['data science','data analyst','analytics','pandas','numpy','tableau','power bi','sql','matplotlib','prophet'],
+    'AI / ML Engineering':              ['machine learning','deep learning','nlp','natural language','tensorflow','pytorch','scikit','keras','llm','ai engineer','ml engineer'],
+    'Software / Full-Stack Engineering':['java','javascript','react','node','django','flask','spring','full stack','backend','frontend','html','css'],
+    'Cloud / DevOps':                   ['aws','azure','gcp','google cloud','docker','kubernetes','devops','terraform','cloud'],
+    'Cybersecurity':                     ['security','penetration','vapt','soc','cyber','firewall','ethical hack'],
+    'Product Management':               ['product manager','jira','agile','scrum','roadmap','user research'],
+    'Digital Marketing / Growth':       ['seo','sem','google ads','digital marketing','content','social media'],
+    'Finance / BFSI':                   ['finance','equity','investment','cfa','frm','bfsi','banking'],
+  };
+
+  const searchText = [
+    (profile.personal?.summary || ''),
+    (profile.preferences?.preferred_roles || ''),
+    (profile.education?.field_of_study || ''),
+    ...(profile.skills_flat || []),
+  ].join(' ').toLowerCase();
+
+  const scores = Object.entries(signals).map(([role, kws]) => ({
+    role,
+    score: kws.filter(k => searchText.includes(k)).length
+  }));
+
+  const ranked = scores.filter(x => x.score > 0).sort((a,b) => b.score - a.score).slice(0, 3).map(x => x.role);
+
+  if (!ranked.length) {
+    // fallback: Python → Data Science, else Software
+    const flat = (profile.skills_flat || []).map(s => s.toLowerCase());
+    ranked.push(flat.includes('python') ? 'Data Science / Analytics' : 'Software / Full-Stack Engineering');
+  }
+
+  return ranked;
+}
+
+// Skip all 8 quiz steps and jump straight to the gap report
+function deetSkipToReport() {
+  if (!DATA_LOADED) { setTimeout(deetSkipToReport, 250); return; }
+  ans.skills = _normSkills(_DEET?.skills_flat || ans.skills || []);
+  document.getElementById('deet-bar').style.display = 'none';
+  document.querySelector('.app').classList.remove('has-bar');
+  cur = STEPS.length;
+  render();
+}
+
+// Keep banner hidden, start quiz with ans pre-filled (user reviews each step)
+function deetStartQuiz() {
+  document.getElementById('deet-bar').style.display = 'none';
+  document.querySelector('.app').classList.remove('has-bar');
+  cur = 0;
+  render();
+}
+
+</script>
+
+<!-- ══ DEET Registration Modal ══════════════════════════════════════════════ -->
+<div id="deet-modal" role="dialog" aria-modal="true" aria-labelledby="deet-modal-title">
+  <div class="deet-modal-box">
+    <h3 id="deet-modal-title">📋 Register on DEET Portal</h3>
+    <p>Upload your resume — AI extracts your details and auto-fills the DEET registration form. One click, fully pre-filled.</p>
+
+    <div class="deet-drop-zone" id="deet-drop" onclick="document.getElementById('deet-file-inp').click()"
+         ondragover="deetDragOver(event)" ondragleave="deetDragLeave(event)" ondrop="deetDrop(event)">
+      <input type="file" id="deet-file-inp" accept=".pdf,.png,.jpg,.jpeg" onchange="deetFileChosen(this)"/>
+      <div class="deet-drop-icon">📄</div>
+      <div class="deet-drop-text">Click or drag your resume here</div>
+      <div class="deet-drop-sub">PDF, PNG, JPG — max 10 MB</div>
+    </div>
+
+    <div class="deet-file-info" id="deet-file-info">
+      <span>📎</span><span id="deet-file-name">—</span>
+    </div>
+
+    <div class="deet-modal-actions">
+      <button class="deet-modal-cancel" onclick="closeDeetModal()">Cancel</button>
+      <button class="deet-modal-submit" id="deet-submit-btn" onclick="deetSubmitResume()" disabled>
+        Analyse &amp; Open DEET →
+      </button>
+    </div>
+    <div class="deet-status" id="deet-status"></div>
+  </div>
+</div>
+
+<script>
+// ── DEET Registration Modal — added by integration layer ──────────────────────
+// Opens AFTER quiz is complete. Uploads resume → gets /deet?deet= URL → navigates.
+// Does NOT touch any quiz functions.
+
+let _deetFile = null;
+
+function openDeetModal() {
+  document.getElementById('deet-modal').classList.add('open');
+  document.getElementById('deet-status').textContent = '';
+  document.getElementById('deet-status').className = 'deet-status';
+}
+
+function closeDeetModal() {
+  document.getElementById('deet-modal').classList.remove('open');
+  // reset
+  _deetFile = null;
+  document.getElementById('deet-file-inp').value = '';
+  document.getElementById('deet-file-info').classList.remove('visible');
+  document.getElementById('deet-submit-btn').disabled = true;
+  document.getElementById('deet-status').textContent = '';
+}
+
+// Close on backdrop click
+document.getElementById('deet-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeDeetModal();
+});
+
+function deetDragOver(e) {
+  e.preventDefault();
+  document.getElementById('deet-drop').classList.add('drag-over');
+}
+function deetDragLeave(e) {
+  document.getElementById('deet-drop').classList.remove('drag-over');
+}
+function deetDrop(e) {
+  e.preventDefault();
+  document.getElementById('deet-drop').classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f) applyDeetFile(f);
+}
+function deetFileChosen(inp) {
+  if (inp.files[0]) applyDeetFile(inp.files[0]);
+}
+function applyDeetFile(f) {
+  _deetFile = f;
+  const info = document.getElementById('deet-file-info');
+  document.getElementById('deet-file-name').textContent = f.name + '  (' + (f.size/1024).toFixed(0) + ' KB)';
+  info.classList.add('visible');
+  document.getElementById('deet-submit-btn').disabled = false;
+}
+
+async function deetSubmitResume() {
+  if (!_deetFile) return;
+
+  const btn    = document.getElementById('deet-submit-btn');
+  const status = document.getElementById('deet-status');
+
+  btn.disabled = true;
+  status.className = 'deet-status loading';
+  status.innerHTML = '<span class="deet-spinner"></span>Extracting profile from resume…';
+
+  const fd = new FormData();
+  fd.append('file', _deetFile);
+
+  try {
+    const res  = await fetch('/api/v1/resume/analyze-for-deet', { method: 'POST', body: fd });
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.detail || 'Server error');
+
+    status.className = 'deet-status success';
+    status.textContent = '✅ Profile extracted! Opening DEET portal…';
+
+    // Save quiz state so user can return to report after DEET registration
+    try { sessionStorage.setItem('quiz_ans', JSON.stringify(ans)); } catch(e) {}
+
+    // Open DEET portal in new tab with pre-filled profile
+    setTimeout(() => { window.open(data.deet_url, '_blank'); closeDeetModal(); }, 700);
+
+  } catch (err) {
+    status.className = 'deet-status error';
+    status.textContent = '⚠️ ' + (err.message || 'Upload failed. Try again.');
+    btn.disabled = false;
+  }
+}
+
+// Inject the "Register on DEET" strip into results after showResult() renders
+// We patch showResult() to append the strip after the result HTML is set
+const _origShowResult = window.showResult || null;
+// Use MutationObserver to watch for result panel appearing and inject strip
+(function() {
+  const observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(m) {
+      m.addedNodes.forEach(function(node) {
+        if (node.nodeType === 1 && node.classList && node.classList.contains('result-wrap')) {
+          injectDeetStrip(node);
+        }
+      });
+    });
+  });
+  observer.observe(document.getElementById('qbody') || document.body, { childList: true, subtree: true });
+})();
+
+function injectDeetStrip(resultNode) {
+  // Don't inject twice
+  if (resultNode.querySelector('.deet-reg-strip')) return;
+
+  const strip = document.createElement('div');
+  strip.className = 'deet-reg-strip';
+  strip.innerHTML = `
+    <div class="deet-reg-strip-left">
+      <h3>📋 Register on the DEET Government Portal</h3>
+      <p>Upload your resume to auto-fill the form instantly, or register manually using your quiz answers.</p>
+    </div>
+    <div style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:center">
+      <button class="deet-reg-btn" onclick="openDeetModal()">
+        📄 Upload Resume &amp; Register →
+      </button>
+      <button class="deet-reg-btn" style="background:#4f46e5;box-shadow:0 4px 14px rgba(79,70,229,.35)"
+              onclick="registerWithQuizData()">
+        ✏️ Register with Quiz Answers →
+      </button>
+    </div>
+  `;
+  resultNode.appendChild(strip);
+}
+
+// Build a minimal DEET-compatible profile from quiz ans only (no personal data)
+function registerWithQuizData() {
+  // Map quiz experience label → years_category
+  const expCatMap = {
+    '👶 0 — Fresher': '0',
+    '🌱 < 1 year':    '1',
+    '🚀 1 – 3 years': '2',
+    '💼 3 – 5 years': '3',
+    '🏆 5 – 10 years':'4',
+    '🎯 10+ years':   '5',
+  };
+  // Map quiz education label → degree_level
+  const degMap = {
+    'B.E. / B.Tech': 'bachelors',
+    'BCA / B.Sc (CS / IT)': 'bachelors',
+    'BBA / B.Com': 'bachelors',
+    'M.E. / M.Tech': 'masters',
+    'MBA': 'masters',
+    'MCA / M.Sc (CS)': 'masters',
+    'PhD': 'phd',
+    'Diploma (Engineering / Polytechnic)': 'diploma',
+  };
+
+  // Strip emoji/icons from role labels: "📊 Data Science / Analytics" → "Data Science / Analytics"
+  const rawRoles = ans.roles || [];
+  const cleanRoles = rawRoles.map(r => r.replace(/^[\p{Emoji}\s]+/u, '').trim());
+
+  // Skills flat from quiz tags
+  const skills_flat = ans.skills || [];
+
+  // City: strip emoji from label
+  const cityRaw = (ans.city || '').replace(/^[\p{Emoji}\s]+/u, '').trim().split('(')[0].trim();
+
+  const quizProfile = {
+    personal: {
+      full_name: '',
+      email:     '',
+      phone:     '',
+      location:  cityRaw,
+      linkedin:  '',
+      github:    '',
+      summary:   ans.goal || '',
+    },
+    skills: {
+      languages:  [],
+      frameworks: [],
+      tools:      [],
+      concepts:   skills_flat,
+    },
+    skills_flat: skills_flat,
+    education: {
+      degree_level:   degMap[ans.education] || '',
+      field_of_study: '',
+      institution:    '',
+      grad_year:      '',
+    },
+    experience: {
+      years_category:   expCatMap[ans.experience] || '0',
+      certifications:   (ans.certs || []).filter(c => c !== 'None yet').join('\n'),
+      projects_summary: '',
+    },
+    preferences: {
+      preferred_roles:     cleanRoles.join(', '),
+      preferred_locations: cityRaw,
+      job_type:            'full_time',
+      availability:        'immediate',
+      work_mode:           'hybrid',
+    },
+    meta: { source: 'quiz_only' },
+  };
+
+  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(quizProfile))));
+  // Open portal with quiz param (distinct from ?deet= which means resume was uploaded)
+  window.open('/deet?quiz=' + encodeURIComponent(encoded), '_blank');
+}
+</script>
+
+</body>
+</html>
