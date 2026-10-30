@@ -1,5 +1,5 @@
 # DEET × Skill Gap — Integrated System
-### Problem #67 (Resume → DEET) + Problem #74 (AI Skill Gap)
+
 
 ---
 
@@ -150,7 +150,7 @@ python3 pipeline.py
 
 | Problem | Component | Status |
 |---------|-----------|--------|
-| #67 Resume-to-DEET Registration | `core/`, `deet_portal/`, `main.py` | ✅ Complete |
-| #74 AI Skill Gap Identification | `skill-gap/`, `main.py` | ✅ Integrated |
+| Resume-to-DEET Registration | `core/`, `deet_portal/`, `main.py` | ✅ Complete |
+| AI Skill Gap Identification | `skill-gap/`, `main.py` | ✅ Integrated |
 | Cross-system data handoff | `/api/v1/resume/analyze`, `?deet=` param | ✅ Complete |
 | DEET → Skill Gap redirect | `deet_portal/index.html` POST handler | ✅ Complete |
